@@ -3,13 +3,14 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
-const EditProfile = ({ id, username, password, profileURL }) => {
+const EditProfile = ({ id, username, profileURL }) => {
   const [newUsername, setNewUsername] = useState(username);
   const [newPassword, setNewPassword] = useState("");
   const [newProfileURL, setNewProfileURL] = useState(profileURL);
   const [editField, setEditField] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const router = useRouter();
+  const MainURL = process.env.baseURL;
 
   const handleEditClick = (field) => {
     setEditField(field);
@@ -33,7 +34,7 @@ const EditProfile = ({ id, username, password, profileURL }) => {
     };
 
     try {
-      const res = await fetch(`/api/users/${id}`, {
+      const res = await fetch(`${MainURL}/api/users/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -60,7 +61,7 @@ const EditProfile = ({ id, username, password, profileURL }) => {
 
   const handleDeleteAccount = async () => {
     try {
-      const res = await fetch(`/api/users/${id}`, {
+      const res = await fetch(`${MainURL}/api/users/${id}`, {
         method: "DELETE",
       });
 
@@ -71,7 +72,7 @@ const EditProfile = ({ id, username, password, profileURL }) => {
       console.log("Account deleted successfully");
 
       // Call the logout API
-      const logoutRes = await fetch("/api/logout", {
+      const logoutRes = await fetch(`${MainURL}/api/logout`, {
         method: "POST",
       });
 

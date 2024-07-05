@@ -1,9 +1,9 @@
 import EditProfile from "@/components/EditProfile";
 
 const getProfileById = async (userId) => {
+  const MainURL = process.env.baseURL;
   try {
-    const MainUrl = process.env.baseURL
-    const res = await fetch(`${MainUrl}/api/users/${userId}`, {
+    const res = await fetch(`${MainURL}/api/users/${userId}`, {
       cache: "no-store",
     });
 
