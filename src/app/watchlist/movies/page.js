@@ -75,7 +75,11 @@ const Watchlist = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
+        <span className="loading loading-ring loading-lg"></span>
+      </div>
+    )
   }
 
   return (

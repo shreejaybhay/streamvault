@@ -16,22 +16,22 @@ const ShowDetailsPage = () => {
     const [showModal, setShowModal] = useState(false);
     const [similarShows, setSimilarShows] = useState([]);
     const [cast, setCast] = useState([]);
-    const [watchlist, setWatchlist] = useState([]);
     const [playingShow, setPlayingShow] = useState(false);
     const [showEmbedUrl, setShowEmbedUrl] = useState('');
     const [selectedSeason, setSelectedSeason] = useState(null);
     const [selectedEpisode, setSelectedEpisode] = useState(null);
+    const [watchlist, setWatchlist] = useState([]);
     const [isInWatchlist, setIsInWatchlist] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const pathParts = window.location.pathname.split('/');
         const showId = pathParts[pathParts.length - 1];
         setId(showId);
-
+        window.scrollTo(0, 0);
         const fetchShowDetails = async () => {
             try {
                 if (!id) return;
-
                 const apiKey = process.env.NEXT_PUBLIC_TMDB_KEY;
                 const responses = await Promise.all([
                     fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${apiKey}`),
@@ -69,12 +69,16 @@ const ShowDetailsPage = () => {
 
                 const isInList = response.data.some(item => item.tvShowIds.includes(id));
                 setIsInWatchlist(isInList);
+                if (isInList) {
+                    setLoading(false);
+                } else if (id) {
+                    setLoading(false);
+                }
             } catch (error) {
                 console.error('Error fetching watchlists:', error);
                 // Handle error (e.g., show error message to user)
             }
         };
-
         fetchShowDetails();
         fetchWatchlists();
     }, [id]);
@@ -152,7 +156,17 @@ const ShowDetailsPage = () => {
         ],
     };
 
-    if (!show) {
+
+
+    if (!show && !loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
+                <p>Show not found</p>
+            </div>
+        );
+    }
+
+    if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
                 <span className="loading loading-ring loading-lg"></span>
@@ -199,11 +213,12 @@ const ShowDetailsPage = () => {
                                         </button>
                                         <button
                                             onClick={handleWatchlistToggle}
-                                            className="flex items-center justify-center px-6 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+                                            className={`flex items-center justify-center px-6 py-2 text-white rounded-md hover:bg-indigo-700 ${isInWatchlist ? 'bg-error hover:bg-error/90' : 'bg-indigo-600 hover:bg-indigo-700'}`}
                                         >
                                             <CiBookmarkPlus className="w-5 h-5 mr-2" />
                                             <span>{isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}</span>
                                         </button>
+
                                         <button
                                             onClick={handleWatchNow}
                                             className="flex items-center justify-center px-6 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700"

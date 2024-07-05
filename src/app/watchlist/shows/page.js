@@ -75,7 +75,12 @@ const ShowsWatchlist = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>; // Show a loading indicator while fetching data
+    return (
+      <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
+        <span className="loading loading-ring loading-lg"></span>
+      </div>
+    )
+
   }
 
   return (

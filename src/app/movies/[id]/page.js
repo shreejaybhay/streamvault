@@ -28,11 +28,14 @@ const MovieDetailsPage = () => {
         const pathParts = window.location.pathname.split('/');
         const movieId = pathParts[pathParts.length - 1];
         setId(movieId);
+    }, []);
 
+    useEffect(() => {
+        if (!id) return;
+
+        window.scrollTo(0, 0);
         const fetchMovieDetails = async () => {
             try {
-                if (!id) return;
-
                 const apiKey = process.env.NEXT_PUBLIC_TMDB_KEY;
                 const responses = await Promise.all([
                     fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}`),
@@ -82,7 +85,7 @@ const MovieDetailsPage = () => {
                 setWatchlist(response.data);
 
                 // Check if the current movie ID is in the watchlist
-                const isInList = response.data.some(item => item.movieIds.includes(movieId));
+                const isInList = response.data.some(item => item.movieIds.includes(id));
                 setIsInWatchlist(isInList);
             } catch (error) {
                 console.error('Error fetching watchlists:', error);
@@ -169,15 +172,7 @@ const MovieDetailsPage = () => {
         ],
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
-                <span className="loading loading-ring loading-lg"></span>
-            </div>
-        );
-    }
-
-    if (!movie) {
+    if (!movie && !loading) {
         return (
             <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
                 <p>Movie not found</p>
@@ -185,6 +180,13 @@ const MovieDetailsPage = () => {
         );
     }
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
+                <span className="loading loading-ring loading-lg"></span>
+            </div>
+        );
+    }
     return (
         <div>
             <div className="flex flex-col items-center justify-start min-h-screen py-8 bg-base-200">
@@ -223,8 +225,8 @@ const MovieDetailsPage = () => {
                                             <span>Watch Trailer</span>
                                         </button>
                                         <button
-                                            onClick={handleWatchlistToggle} // Toggle watchlist function
-                                            className="flex items-center justify-center px-6 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+                                            onClick={handleWatchlistToggle}
+                                            className={`flex items-center justify-center px-6 py-2 text-white rounded-md hover:bg-indigo-700 ${isInWatchlist ? 'bg-error hover:bg-error/90' : 'bg-indigo-600 hover:bg-indigo-700'}`}
                                         >
                                             <CiBookmarkPlus className="w-5 h-5 mr-2" />
                                             <span>{isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}</span>

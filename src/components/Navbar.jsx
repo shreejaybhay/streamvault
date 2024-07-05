@@ -69,7 +69,7 @@ const Navbar = () => {
             </li>
           </ul>
         </details>
-        <a className="text-xl btn btn-ghost">daisyUI</a>
+        <a href="/" className="text-xl btn btn-ghost">StreamVault</a>
       </div>
       <div className="hidden navbar-center lg:flex">
         <ul className="px-1 menu menu-horizontal">
