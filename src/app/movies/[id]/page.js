@@ -230,7 +230,7 @@ const MovieDetailsPage = () => {
                                         >
                                             <CiBookmarkPlus className="w-5 h-5 mr-2" />
                                             <span>{isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}</span>
-                                        </button>
+                                        </button>   
                                         <button
                                             onClick={handleWatchNow}
                                             className="flex items-center justify-center px-6 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
