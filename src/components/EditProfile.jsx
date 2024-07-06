@@ -10,7 +10,6 @@ const EditProfile = ({ id, username, profileURL }) => {
   const [editField, setEditField] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const router = useRouter();
-  const MainURL = process.env.baseURL;
 
   const handleEditClick = (field) => {
     setEditField(field);
@@ -34,7 +33,7 @@ const EditProfile = ({ id, username, profileURL }) => {
     };
 
     try {
-      const res = await fetch(`${MainURL}/api/users/${id}`, {
+      const res = await fetch(`/api/users/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -61,7 +60,7 @@ const EditProfile = ({ id, username, profileURL }) => {
 
   const handleDeleteAccount = async () => {
     try {
-      const res = await fetch(`${MainURL}/api/users/${id}`, {
+      const res = await fetch(`/api/users/${id}`, {
         method: "DELETE",
       });
 
@@ -72,7 +71,7 @@ const EditProfile = ({ id, username, profileURL }) => {
       console.log("Account deleted successfully");
 
       // Call the logout API
-      const logoutRes = await fetch(`${MainURL}/api/logout`, {
+      const logoutRes = await fetch(`/api/logout`, {
         method: "POST",
       });
 
