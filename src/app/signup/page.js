@@ -99,16 +99,16 @@ const SignUpPage = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-60px)] bg-gray-900">
-      <div className="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-lg">
-        <h2 className="mb-6 text-2xl font-bold text-white">Sign Up</h2>
+    <div className="flex items-center justify-center min-h-[calc(100vh-68px)] bg-base-300">
+      <div className="w-full max-w-md p-8 rounded-lg shadow-lg bg-base-200">
+        <h2 className="mb-6 text-2xl font-bold text-base-content">Sign Up</h2>
         <form onSubmit={doSignup}>
           <div className="mb-4">
-            <label className="block mb-2 text-sm font-bold text-gray-300" htmlFor="username">
+            <label className="block mb-2 text-sm font-bold text-base-content" htmlFor="username">
               Username
             </label>
             <input
-              className="w-full px-3 py-2 leading-tight text-gray-200 bg-gray-900 border border-gray-700 rounded shadow appearance-none focus:outline-none focus:shadow-outline"
+              className="w-full px-3 py-2 leading-tight border border-gray-700 rounded shadow appearance-none bg-base-300 text-base-content focus:outline-none focus:shadow-outline"
               id="username"
               type="text"
               placeholder="Username"
@@ -117,11 +117,11 @@ const SignUpPage = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block mb-2 text-sm font-bold text-gray-300" htmlFor="email">
+            <label className="block mb-2 text-sm font-bold text-base-content" htmlFor="email">
               Email
             </label>
             <input
-              className="w-full px-3 py-2 leading-tight text-gray-200 bg-gray-900 border border-gray-700 rounded shadow appearance-none focus:outline-none focus:shadow-outline"
+              className="w-full px-3 py-2 leading-tight border border-gray-700 rounded shadow appearance-none bg-base-300 text-base-content focus:outline-none focus:shadow-outline"
               id="email"
               type="email"
               placeholder="Email"
@@ -130,11 +130,11 @@ const SignUpPage = () => {
             />
           </div>
           <div className="mb-6">
-            <label className="block mb-2 text-sm font-bold text-gray-300" htmlFor="password">
+            <label className="block mb-2 text-sm font-bold text-base-content" htmlFor="password">
               Password
             </label>
             <input
-              className="w-full px-3 py-2 mb-3 leading-tight text-gray-200 bg-gray-900 border border-gray-700 rounded shadow appearance-none focus:outline-none focus:shadow-outline"
+              className="w-full px-3 py-2 mb-3 leading-tight border border-gray-700 rounded shadow appearance-none text-base-content bg-base-300 focus:outline-none focus:shadow-outline"
               id="password"
               type="password"
               placeholder="******************"

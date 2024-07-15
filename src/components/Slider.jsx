@@ -3,6 +3,7 @@ import { CiBookmarkPlus } from "react-icons/ci";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import axios from "axios";
+import Link from "next/link";
 
 export default function Slider() {
   const [movies, setMovies] = useState([]);
@@ -63,10 +64,15 @@ export default function Slider() {
                   {movie.overview}
                 </p>
                 <div className="justify-start card-actions">
-                  <button className="btn btn-primary">Watch Now</button>
-                  <button className="btn">
+                  <Link
+                    href={`/movies/${movie.id}`}
+                    className="btn btn-primary"
+                  >
+                    Watch Now
+                  </Link>
+                  <Link href={`/movies/${movie.id}`} className="btn">
                     <CiBookmarkPlus size={24} />
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

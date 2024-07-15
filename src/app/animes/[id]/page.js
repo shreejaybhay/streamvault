@@ -1,72 +1,70 @@
+// pages/AnimeDetailsPage.jsx
 "use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import { AiOutlineDownload } from 'react-icons/ai';
 import { MdClose } from 'react-icons/md';
-import { BsFillPlayFill } from "react-icons/bs";
+import { BsFillPlayFill } from 'react-icons/bs';
 import { CiBookmarkPlus } from 'react-icons/ci';
 import axios from 'axios';
 
-const MovieDetailsPage = () => {
-    const [movie, setMovie] = useState(null);
+const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_KEY;
+const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+
+const AnimeDetailsPage = () => {
+    const [anime, setAnime] = useState(null);
     const [id, setId] = useState(null);
     const [trailer, setTrailer] = useState(null);
     const [showModal, setShowModal] = useState(false);
-    const [downloadLinks, setDownloadLinks] = useState([]);
-    const [similarMovies, setSimilarMovies] = useState([]);
+    const [similarAnime, setSimilarAnime] = useState([]);
     const [cast, setCast] = useState([]);
-    const [playingMovie, setPlayingMovie] = useState(false);
-    const [movieEmbedUrl, setMovieEmbedUrl] = useState('');
+    const [playingAnime, setPlayingAnime] = useState(false);
+    const [animeEmbedUrl, setAnimeEmbedUrl] = useState('');
+    const [selectedSeason, setSelectedSeason] = useState(null);
+    const [selectedEpisode, setSelectedEpisode] = useState(null);
     const [watchlist, setWatchlist] = useState([]);
     const [isInWatchlist, setIsInWatchlist] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [watchlistLoading, setWatchlistLoading] = useState(true);
+    const [animeLoading, setAnimeLoading] = useState(true);
 
     useEffect(() => {
         const pathParts = window.location.pathname.split('/');
-        const movieId = pathParts[pathParts.length - 1];
-        setId(movieId);
-    }, []);
-
-    useEffect(() => {
-        if (!id) return;
-
+        const animeId = pathParts[pathParts.length - 1];
+        setId(animeId);
         window.scrollTo(0, 0);
-        const fetchMovieDetails = async () => {
+
+        const fetchAnimeDetails = async () => {
             try {
-                const apiKey = process.env.NEXT_PUBLIC_TMDB_KEY;
-                const responses = await Promise.all([
-                    fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}`),
-                    fetch(`https://api.themoviedb.org/3/movie/${id}/videos?api_key=${apiKey}`),
-                    fetch(`https://api.themoviedb.org/3/movie/${id}/similar?api_key=${apiKey}`),
-                    fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${apiKey}`),
+                if (!id) return;
+
+                // Fetch anime details from TMDB using the anime ID
+                const tmdbApiKey = process.env.NEXT_PUBLIC_TMDB_KEY;
+                const [animeResponse, trailerResponse, similarResponse, castResponse] = await Promise.all([
+                    fetch(`${TMDB_BASE_URL}/tv/${id}?api_key=${tmdbApiKey}`),
+                    fetch(`${TMDB_BASE_URL}/tv/${id}/videos?api_key=${tmdbApiKey}`),
+                    fetch(`${TMDB_BASE_URL}/tv/${id}/similar?api_key=${tmdbApiKey}`),
+                    fetch(`${TMDB_BASE_URL}/tv/${id}/credits?api_key=${tmdbApiKey}`)
                 ]);
 
-                if (responses.some(res => !res.ok)) {
-                    throw new Error('Failed to fetch data');
-                }
+                const [animeData, trailerData, similarData, castData] = await Promise.all([
+                    animeResponse.json(),
+                    trailerResponse.json(),
+                    similarResponse.json(),
+                    castResponse.json()
+                ]);
 
-                const [movieData, trailerData, similarData, castData] = await Promise.all(responses.map(res => res.json()));
-
-                setMovie(movieData);
+                setAnime(animeData);
                 setTrailer(trailerData.results.find(video => video.type === 'Trailer' && video.site === 'YouTube'));
-                setSimilarMovies(similarData.results);
+                setSimilarAnime(similarData.results);
                 setCast(castData.cast);
-
-                const ytsResponse = await fetch(`https://yts.mx/api/v2/list_movies.json?query_term=${encodeURIComponent(movieData.title)}`);
-                if (!ytsResponse.ok) {
-                    throw new Error('Failed to fetch download links');
-                }
-                const ytsData = await ytsResponse.json();
-                if (ytsData.data.movie_count > 0) {
-                    setDownloadLinks(ytsData.data.movies[0].torrents);
-                }
             } catch (error) {
-                console.error('Error fetching movie details:', error);
+                console.error('Error fetching anime details:', error);
             } finally {
-                setLoading(false);
+                setTimeout(() => setLoading(false), 1500); // Show loader for 5 seconds
+                setAnimeLoading(false);
             }
         };
 
@@ -84,47 +82,48 @@ const MovieDetailsPage = () => {
 
                 setWatchlist(response.data);
 
-                // Check if the current movie ID is in the watchlist
-                const isInList = response.data.some(item => item.movieIds.includes(id));
+                const isInList = response.data.some(item => item.animeIds.includes(id));
                 setIsInWatchlist(isInList);
             } catch (error) {
                 console.error('Error fetching watchlists:', error);
+            } finally {
+                setWatchlistLoading(false);
             }
         };
 
-        fetchMovieDetails();
+        fetchAnimeDetails();
         fetchWatchlists();
     }, [id]);
 
-    // Function to add movie to watchlist
     const addToWatchlist = async () => {
         try {
-            const authToken = localStorage.getItem('authToken'); // Assuming you store authToken in localStorage after login
-            const response = await axios.post('/api/watchlist', {
-                movieIds: [id] // Add current movie ID to watchlist
-            }, {
+            setWatchlistLoading(true);
+            const authToken = localStorage.getItem('authToken');
+            const response = await axios.post('/api/watchlist', { animeIds: [id] }, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${authToken}`
                 }
             });
 
-            console.log('Added to watchlist:', response.data);
             setIsInWatchlist(true);
-            // Optionally update UI or show a success message to the user
-
+            console.log('Added to watchlist:', response.data);
         } catch (error) {
             console.error('Error adding to watchlist:', error);
-            // Handle error scenario - e.g., show error message to the user
+        } finally {
+            setWatchlistLoading(false);
         }
     };
 
-    // Function to remove movie from watchlist
     const removeFromWatchlist = async () => {
         try {
-            const authToken = localStorage.getItem('authToken'); // Assuming you store authToken in localStorage after login
-            const watchlistItem = watchlist.find(item => item.movieIds.includes(id));
-            if (!watchlistItem) return;
+            setWatchlistLoading(true);
+            const authToken = localStorage.getItem('authToken');
+            const watchlistItem = watchlist.find(item => item.animeIds.includes(id));
+            if (!watchlistItem) {
+                setWatchlistLoading(false);
+                return;
+            }
 
             const response = await axios.delete(`/api/watchlist/${watchlistItem._id}`, {
                 headers: {
@@ -132,17 +131,15 @@ const MovieDetailsPage = () => {
                 }
             });
 
-            console.log('Removed from watchlist:', response.data);
             setIsInWatchlist(false);
-            // Optionally update UI or show a success message to the user
-
+            console.log('Removed from watchlist:', response.data);
         } catch (error) {
             console.error('Error removing from watchlist:', error);
-            // Handle error scenario - e.g., show error message to the user
+        } finally {
+            setWatchlistLoading(false);
         }
     };
 
-    // Toggle function for watchlist
     const handleWatchlistToggle = () => {
         if (isInWatchlist) {
             removeFromWatchlist();
@@ -155,8 +152,12 @@ const MovieDetailsPage = () => {
     const closeModal = () => setShowModal(false);
 
     const handleWatchNow = () => {
-        setPlayingMovie(true);
-        setMovieEmbedUrl(`https://vidsrc.pro/embed/movie/${id}`);
+        if (selectedSeason && selectedEpisode) {
+            setPlayingAnime(true);
+            setAnimeEmbedUrl(`https://vidsrc.pro/embed/tv/${id}/${selectedSeason}/${selectedEpisode}`);
+        } else {
+            alert('Please select a season and episode to watch.');
+        }
     };
 
     const sliderSettings = {
@@ -172,14 +173,6 @@ const MovieDetailsPage = () => {
         ],
     };
 
-    if (!movie && !loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
-                <p>Movie not found</p>
-            </div>
-        );
-    }
-
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
@@ -187,6 +180,15 @@ const MovieDetailsPage = () => {
             </div>
         );
     }
+
+    if (!anime && !animeLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
+                <p>Anime not found</p>
+            </div>
+        );
+    }
+
     return (
         <div>
             <div className="flex flex-col items-center justify-start min-h-screen py-8 bg-base-200">
@@ -194,25 +196,25 @@ const MovieDetailsPage = () => {
                     <div className="grid gap-8 lg:grid-cols-6">
                         <div className="lg:col-span-2">
                             <img
-                                src={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image+Available'}
-                                alt={movie.title}
+                                src={anime.poster_path ? `https://image.tmdb.org/t/p/w500${anime.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image+Available'}
+                                alt={anime.name}
                                 className="w-full h-auto rounded-md shadow-lg"
                             />
                         </div>
                         <div className="lg:col-span-4">
-                            <h1 className="mb-4 text-4xl font-bold">{movie.title}</h1>
+                            <h1 className="mb-4 text-4xl font-bold">{anime.name}</h1>
                             <div className="flex flex-wrap items-center mb-4 text-gray-400">
-                                <span className="mr-4 text-base-content">Release Date: {movie.release_date}</span>
-                                <span className="mr-4 text-base-content">Rating: {movie.vote_average}</span>
-                                <span className="text-base-content">Runtime: {movie.runtime} minutes</span>
+                                <span className="mr-4 text-base-content">First Air Date: {anime.first_air_date}</span>
+                                <span className="mr-4 text-base-content">Rating: {anime.vote_average}</span>
+                                <span className="text-base-content">Number of Seasons: {anime.number_of_seasons}</span>
                             </div>
                             <div className="mb-4 text-base-content">
-                                Genres: {movie.genres.map(genre => genre.name).join(', ')}
+                                Genres: {anime.genres.map(genre => genre.name).join(', ')}
                             </div>
                             <div className="mb-4 text-base-content">
-                                Production Companies: {movie.production_companies.map(company => company.name).join(', ')}
+                                Production Companies: {anime.production_companies.map(company => company.name).join(', ')}
                             </div>
-                            <p className="mb-4 text-base-content">{movie.overview}</p>
+                            <p className="mb-4 text-base-content">{anime.overview}</p>
                             {trailer && (
                                 <div className="flex flex-col mt-4 mb-8">
                                     <h2 className="mb-2 text-lg font-semibold text-base-content">Actions</h2>
@@ -226,11 +228,13 @@ const MovieDetailsPage = () => {
                                         </button>
                                         <button
                                             onClick={handleWatchlistToggle}
-                                            className={`flex items-center justify-center px-6 py-2 text-white rounded-md  ${isInWatchlist ? 'bg-error hover:bg-error/90' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                                            className={`flex items-center justify-center px-6 py-2 text-white rounded-md ${isInWatchlist ? 'bg-error hover:bg-error/90' : 'bg-indigo-600'}`}
                                         >
-                                            <CiBookmarkPlus className="w-5 h-5 mr-2" />
-                                            <span>{isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}</span>
-                                        </button>   
+                                            <>
+                                                <CiBookmarkPlus className="w-5 h-5 mr-2" />
+                                                <span>{isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}</span>
+                                            </>
+                                        </button>
                                         <button
                                             onClick={handleWatchNow}
                                             className="flex items-center justify-center px-6 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
@@ -239,7 +243,35 @@ const MovieDetailsPage = () => {
                                             <span>Watch Now</span>
                                         </button>
                                     </div>
-
+                                    <div className="mt-4">
+                                        <label className="block mb-2 text-base-content">Select Season:</label>
+                                        <select
+                                            value={selectedSeason}
+                                            onChange={(e) => setSelectedSeason(e.target.value)}
+                                            className="w-full p-2 mb-4 rounded-md text-base-content bg-base-300"
+                                        >
+                                            <option value="">Select Season</option>
+                                            {Array.from({ length: anime.number_of_seasons }, (_, i) => i + 1).map(season => (
+                                                <option key={season} value={season}>Season {season}</option>
+                                            ))}
+                                        </select>
+                                        {selectedSeason && (
+                                            <>
+                                                <label className="block mb-2 text-base-content">Select Episode:</label>
+                                                <select
+                                                    value={selectedEpisode}
+                                                    onChange={(e) => setSelectedEpisode(e.target.value)}
+                                                    className="w-full p-2 rounded-md text-base-content bg-base-300"
+                                                >
+                                                    <option value="">Select Episode</option>
+                                                    {anime.seasons.find(season => season.season_number === parseInt(selectedSeason)).episode_count &&
+                                                        Array.from({ length: anime.seasons.find(season => season.season_number === parseInt(selectedSeason)).episode_count }, (_, i) => i + 1).map(episode => (
+                                                            <option key={episode} value={episode}>Episode {episode}</option>
+                                                        ))}
+                                                </select>
+                                            </>
+                                        )}
+                                    </div>
                                     {showModal && (
                                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                                             <div className="absolute inset-0 bg-black opacity-75"></div>
@@ -257,38 +289,12 @@ const MovieDetailsPage = () => {
                                                         frameBorder="0"
                                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media"
                                                         allowFullScreen
-                                                        title={movie.title}
+                                                        title={anime.name}
                                                     ></iframe>
                                                 </div>
                                             </div>
                                         </div>
                                     )}
-                                </div>
-
-                            )}
-                            {downloadLinks.length > 0 && (
-                                <div className="mt-8">
-                                    <h2 className="mb-3 text-lg font-semibold base-content">Download Links</h2>
-                                    <ul className="space-y-2">
-                                        {downloadLinks.map((torrent, index) => (
-                                            <li key={index} className="flex items-center justify-between p-4 transition rounded-lg shadow bg-base-300 hover:bg-base-300/60">
-                                                <div className="flex items-center">
-                                                    <AiOutlineDownload className="w-5 h-5 mr-2 text-indigo-400" />
-                                                    <span className="font-medium text-indigo-400">
-                                                        {torrent.quality} - {torrent.size}
-                                                    </span>
-                                                </div>
-                                                <a
-                                                    href={torrent.url}
-                                                    className="px-4 py-1 text-sm font-semibold text-white bg-indigo-600 rounded-full hover:bg-indigo-500"
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                >
-                                                    Download
-                                                </a>
-                                            </li>
-                                        ))}
-                                    </ul>
                                 </div>
                             )}
                         </div>
@@ -308,19 +314,19 @@ const MovieDetailsPage = () => {
                                     </li>
                                 ))}
                             </ul>
-                            <Link href={`/movies/${id}/cast`} className="block mt-4 text-indigo-400 hover:underline">View Full Cast</Link>
+                            <Link href={`/anime/${id}/cast`} className="block mt-4 text-indigo-400 hover:underline">View Full Cast</Link>
                         </div>
-                        {similarMovies.length > 0 && (
-                            <div className="col-span-3 mt-10 sm:mt-10 md:mt-10 lg:mt-0">
-                                <h2 className="mb-5 text-lg font-semibold text-base-content">Similar Movies</h2>
+                        {similarAnime.length > 0 && (
+                            <div className="col-span-3 mt-4 sm:mt-10 md:mt-10 lg:mt-0">
+                                <h2 className="mb-5 text-lg font-semibold text-base-content">Similar Anime</h2>
                                 <Slider {...sliderSettings}>
-                                    {similarMovies.map(similarMovie => (
-                                        <Link key={similarMovie.id} href={`/movies/${similarMovie.id}`}>
+                                    {similarAnime.map(similar => (
+                                        <Link key={similar.id} href={`/animes/${similar.id}`}>
                                             <div className="cursor-pointer">
-                                                {similarMovie.poster_path ? (
+                                                {similar.poster_path ? (
                                                     <img
-                                                        src={`https://image.tmdb.org/t/p/w300${similarMovie.poster_path}`}
-                                                        alt={similarMovie.title}
+                                                        src={`https://image.tmdb.org/t/p/w300${similar.poster_path}`}
+                                                        alt={similar.name}
                                                         className="w-48 h-auto mx-auto rounded-md"
                                                     />
                                                 ) : (
@@ -330,7 +336,7 @@ const MovieDetailsPage = () => {
                                                         className="w-48 h-auto mx-auto rounded-md"
                                                     />
                                                 )}
-                                                <p className="mt-2 text-sm text-center text-gray-400">{similarMovie.title}</p>
+                                                <p className="mt-2 text-sm text-center text-gray-400">{similar.name}</p>
                                             </div>
                                         </Link>
                                     ))}
@@ -338,22 +344,22 @@ const MovieDetailsPage = () => {
                             </div>
                         )}
                     </div>
-                    {playingMovie && (
+                    {playingAnime && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75">
                             <div className="relative z-10 w-full h-full max-w-screen-full">
                                 <button
-                                    onClick={() => setPlayingMovie(false)}
+                                    onClick={() => setPlayingAnime(false)}
                                     className="absolute text-white top-4 right-4 hover:text-gray-400"
                                 >
                                     <MdClose size={24} />
                                 </button>
                                 <iframe
                                     className="w-full h-full"
-                                    src={movieEmbedUrl}
+                                    src={animeEmbedUrl}
                                     frameBorder="0"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowFullScreen
-                                    title={movie.title}
+                                    title={anime.name}
                                 ></iframe>
                             </div>
                         </div>
@@ -364,4 +370,4 @@ const MovieDetailsPage = () => {
     );
 };
 
-export default MovieDetailsPage;
+export default AnimeDetailsPage;

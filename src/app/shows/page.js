@@ -20,6 +20,9 @@ const TVShowsPage = () => {
 
         const savedGenre = localStorage.getItem(selectedGenreKey) || '';
         setSelectedGenre(savedGenre);
+
+        const savedSearchTerm = localStorage.getItem('searchTerm') || '';
+        setSearchTerm(savedSearchTerm);
     }, []);
 
     useEffect(() => {
@@ -33,8 +36,7 @@ const TVShowsPage = () => {
             } else if (selectedGenre) {
                 url = `https://api.themoviedb.org/3/discover/tv?api_key=${api_key}&with_genres=${selectedGenre}&page=${page}`;
             } else {
-                url = `https://api.themoviedb.org/3/tv/on_the_air?api_key=${api_key}&page=${page}
-`;
+                url = `https://api.themoviedb.org/3/tv/on_the_air?api_key=${api_key}&page=${page}`;
             }
 
             try {
@@ -62,6 +64,7 @@ const TVShowsPage = () => {
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
+        localStorage.setItem('searchTerm', e.target.value);
         setPage(1);
     };
 
@@ -79,6 +82,7 @@ const TVShowsPage = () => {
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
             setSearchTerm(transcript);
+            localStorage.setItem('searchTerm', transcript);
             setPage(1);
         };
 
@@ -111,6 +115,32 @@ const TVShowsPage = () => {
         if (year === currentYear) return "NEW";
         if (year === currentYear - 1) return "Presently";
         return "OLD";
+    };
+
+    const renderPagination = () => {
+        const totalPages = 100; // Assuming you know the total number of pages
+
+        return (
+            <div className="join">
+                <button
+                    className="join-item btn"
+                    onClick={() => handlePageChange(page - 1)}
+                    disabled={page === 1}
+                >
+                    «
+                </button>
+                <button className="join-item btn" onClick={() => handlePageChange(page)}>
+                    Page {page}
+                </button>
+                <button
+                    className="join-item btn"
+                    onClick={() => handlePageChange(page + 1)}
+                    disabled={page === totalPages}
+                >
+                    »
+                </button>
+            </div>
+        );
     };
 
     return (
@@ -185,21 +215,6 @@ const TVShowsPage = () => {
                         </div>
                     </div>
 
-                    <div className="flex justify-between mb-4">
-                        <button
-                            onClick={() => handlePageChange(page - 1)}
-                            disabled={page === 1}
-                            className="px-4 py-2 text-white rounded-md bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
-                        >
-                            <GrFormPrevious className="w-6 h-6" />
-                        </button>
-                        <button
-                            onClick={() => handlePageChange(page + 1)}
-                            className="px-4 py-2 text-white rounded-md bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-                        >
-                            <MdNavigateNext className="w-6 h-6" />
-                        </button>
-                    </div>
 
                     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ">
                         {shows.map(show => (
@@ -225,19 +240,7 @@ const TVShowsPage = () => {
                     </div>
 
                     <div className="flex justify-center gap-5 mt-8">
-                        <button
-                            onClick={() => handlePageChange(page - 1)}
-                            disabled={page === 1}
-                            className="px-4 py-2 text-white rounded-md bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
-                        >
-                            Previous Page
-                        </button>
-                        <button
-                            onClick={() => handlePageChange(page + 1)}
-                            className="px-4 py-2 text-white rounded-md bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-                        >
-                            Next Page
-                        </button>
+                        {renderPagination()}
                     </div>
                 </div>
             )}

@@ -3,8 +3,9 @@ import { User } from "@/models/users";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
+
 export async function POST(request) {
-    await connectDB()
+    await connectDB();
     try {
         const { email, password } = await request.json();
 
@@ -28,7 +29,10 @@ export async function POST(request) {
         );
 
         const response = NextResponse.json({ message: "Login successful", success: true, user });
+        
+        // Set token in cookies (httpOnly) and also in localStorage
         response.cookies.set("authToken", token, { httpOnly: true });
+        response.cookies.set("authToken", token); // Store in localStorage
 
         return response;
     } catch (error) {

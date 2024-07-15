@@ -1,9 +1,8 @@
+// pages/MoviesPage.jsx
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { MdNavigateNext } from "react-icons/md";
-import { GrFormPrevious } from "react-icons/gr";
 import { BsFillMicFill } from "react-icons/bs"; // Import microphone icon
 
 const MoviesPage = () => {
@@ -15,6 +14,7 @@ const MoviesPage = () => {
 
     const api_key = process.env.NEXT_PUBLIC_TMDB_KEY;
     const selectedGenreKey = 'selected_genre';
+    const searchKey = 'search_term'; // Key for storing search term in local storage
 
     useEffect(() => {
         const savedPage = parseInt(localStorage.getItem('page'), 10) || 1;
@@ -22,6 +22,9 @@ const MoviesPage = () => {
 
         const savedGenre = localStorage.getItem(selectedGenreKey) || '';
         setSelectedGenre(savedGenre);
+
+        const savedSearchTerm = localStorage.getItem(searchKey) || '';
+        setSearchTerm(savedSearchTerm);
     }, []);
 
     useEffect(() => {
@@ -61,8 +64,10 @@ const MoviesPage = () => {
     };
 
     const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
+        const searchTermValue = e.target.value;
+        setSearchTerm(searchTermValue);
         setPage(1);
+        localStorage.setItem(searchKey, searchTermValue); // Store search term in local storage
     };
 
     const handleGenreChange = (genre) => {
@@ -80,6 +85,7 @@ const MoviesPage = () => {
             const transcript = event.results[0][0].transcript;
             setSearchTerm(transcript);
             setPage(1);
+            localStorage.setItem(searchKey, transcript); // Store search term in local storage
         };
 
         recognition.onerror = (event) => {
@@ -109,13 +115,37 @@ const MoviesPage = () => {
         { name: "Western", id: 37 },
     ];
 
-    const mov = ["trending", "trailers"];
-
     const getBadge = (year) => {
         const currentYear = new Date().getFullYear();
         if (year === currentYear) return "NEW";
         if (year === currentYear - 1) return "Presently";
         return "OLD";
+    };
+
+    const renderPagination = () => {
+        const totalPages = 100; // Assuming you know the total number of pages
+
+        return (
+            <div className="join">
+                <button
+                    className="join-item btn"
+                    onClick={() => handlePageChange(page - 1)}
+                    disabled={page === 1}
+                >
+                    «
+                </button>
+                <button className="join-item btn" onClick={() => handlePageChange(page)}>
+                    Page {page}
+                </button>
+                <button
+                    className="join-item btn"
+                    onClick={() => handlePageChange(page + 1)}
+                    disabled={page === totalPages}
+                >
+                    »
+                </button>
+            </div>
+        );
     };
 
     return (
@@ -152,29 +182,7 @@ const MoviesPage = () => {
                     </div>
                 </div>
 
-                <div className="flex justify-between mb-4">
-                    <button
-                        onClick={() => handlePageChange(page - 1)}
-                        disabled={page === 1}
-                        className="px-4 py-2 text-white rounded-md bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
-                    >
-                        <GrFormPrevious className="w-6 h-6" />
-                    </button>
-                    <button
-                        onClick={() => handlePageChange(page + 1)}
-                        className="px-4 py-2 text-white rounded-md bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-                    >
-                        <MdNavigateNext className="w-6 h-6" />
-                    </button>
-                </div>
 
-                <div className="flex flex-wrap justify-center gap-4 mb-8">
-                    {mov.map((category, index) => (
-                        <Link key={index} href={`/movies/${category}`}>
-                            <p className="px-4 py-2 text-center text-white rounded-md bg-primary">{category}</p>
-                        </Link>
-                    ))}
-                </div>
 
                 {isLoading ? (
                     <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
@@ -206,19 +214,7 @@ const MoviesPage = () => {
                 )}
 
                 <div className="flex justify-center gap-5 mt-8">
-                    <button
-                        onClick={() => handlePageChange(page - 1)}
-                        disabled={page === 1}
-                        className="px-4 py-2 text-white rounded-md bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
-                    >
-                        Previous Page
-                    </button>
-                    <button
-                        onClick={() => handlePageChange(page + 1)}
-                        className="px-4 py-2 text-white rounded-md bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-                    >
-                        Next Page
-                    </button>
+                    {renderPagination()}
                 </div>
             </div>
         </div>

@@ -87,9 +87,9 @@ const EditProfile = ({ id, username, profileURL }) => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
-      <div className="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-lg">
-        <h2 className="mb-6 text-2xl font-bold text-center text-white">
+    <div className="flex items-center justify-center  h-[calc(100vh-68px)] bg-base-300">
+      <div className="w-full max-w-md p-8 rounded-lg shadow-lg bg-base-200">
+        <h2 className="mb-6 text-2xl font-bold text-center text-base-content">
           Edit Profile
         </h2>
 
@@ -98,7 +98,7 @@ const EditProfile = ({ id, username, profileURL }) => {
         )}
 
         <div className="mb-6">
-          <label className="block mb-2 text-sm font-bold text-gray-300">
+          <label className="block mb-2 text-sm font-bold text-base-content">
             Profile Pic:
           </label>
           <div className="flex items-center justify-between">
@@ -110,7 +110,7 @@ const EditProfile = ({ id, username, profileURL }) => {
               />
             )}
             <button
-              className="px-4 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+              className="px-4 py-1 text-sm rounded text-base-content bg-base-300 focus:outline-none focus:shadow-outline"
               onClick={() => handleEditClick("profileURL")}
             >
               Edit
@@ -119,13 +119,13 @@ const EditProfile = ({ id, username, profileURL }) => {
         </div>
 
         <div className="mb-6">
-          <label className="block mb-2 text-sm font-bold text-gray-300">
+          <label className="block mb-2 text-sm font-bold text-base-content">
             Username:
           </label>
           <div className="flex items-center justify-between">
             <span className="mr-2">{newUsername}</span>
             <button
-              className="px-4 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+              className="px-4 py-1 text-sm rounded bg-base-300 text-base-content focus:outline-none focus:shadow-outline"
               onClick={() => handleEditClick("username")}
             >
               Edit
@@ -134,13 +134,13 @@ const EditProfile = ({ id, username, profileURL }) => {
         </div>
 
         <div className="mb-6">
-          <label className="block mb-2 text-sm font-bold text-gray-300">
+          <label className="block mb-2 text-sm font-bold text-base-content">
             Password:
           </label>
           <div className="flex items-center justify-between">
             <p>*********</p>
             <button
-              className="px-4 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+              className="px-4 py-1 text-sm rounded bg-base-300 text-base-content focus:outline-none focus:shadow-outline"
               onClick={() => handleEditClick("password")}
             >
               Edit
@@ -150,7 +150,7 @@ const EditProfile = ({ id, username, profileURL }) => {
 
         <div className="mb-6">
           <button
-            className="w-full px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700 focus:outline-none focus:shadow-outline"
+            className="w-full px-4 py-2 font-bold rounded text-base-content bg-base-300 focus:outline-none focus:shadow-outline"
             onClick={handleDeleteAccount}
           >
             Delete Account
@@ -159,8 +159,8 @@ const EditProfile = ({ id, username, profileURL }) => {
 
         {editField && (
           <div className="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="relative w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-lg">
-              <h2 className="mb-6 text-2xl font-bold text-center text-white">
+            <div className="relative w-full max-w-md p-8 rounded-lg shadow-lg bg-base-300">
+              <h2 className="mb-6 text-2xl font-bold text-center text-base-content">
                 Edit{" "}
                 {editField === "username"
                   ? "Username"
@@ -172,7 +172,7 @@ const EditProfile = ({ id, username, profileURL }) => {
                 {editField === "username" && (
                   <div className="mb-4">
                     <label
-                      className="block mb-2 text-sm font-bold text-gray-300"
+                      className="block mb-2 text-sm font-bold text-base-content"
                       htmlFor="newUsername"
                     >
                       New Username
@@ -210,13 +210,13 @@ const EditProfile = ({ id, username, profileURL }) => {
                 {editField === "profileURL" && (
                   <div className="mb-4">
                     <label
-                      className="block mb-2 text-sm font-bold text-gray-300"
+                      className="block mb-2 text-sm font-bold text-base-content"
                       htmlFor="newProfileURL"
                     >
                       New Profile Pic URL
                     </label>
                     <input
-                      className="w-full px-3 py-2 leading-tight text-gray-200 bg-gray-900 border border-gray-700 rounded shadow appearance-none focus:outline-none focus:shadow-outline"
+                      className="w-full px-3 py-2 leading-tight border border-gray-700 rounded shadow appearance-none text-text-base-content bg-base-300 focus:outline-none focus:shadow-outline"
                       id="newProfileURL"
                       type="text"
                       placeholder="New Profile Pic URL"
@@ -228,7 +228,7 @@ const EditProfile = ({ id, username, profileURL }) => {
 
                 <div className="flex items-center justify-center">
                   <button
-                    className="w-full px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                    className="w-full px-4 py-2 font-bold rounded text-info-content bg-info focus:outline-none focus:shadow-outline"
                     type="submit"
                   >
                     Save Changes

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Slider from 'react-slick';
@@ -7,7 +7,7 @@ import 'slick-carousel/slick/slick-theme.css';
 import { MdClose } from 'react-icons/md';
 import { BsFillPlayFill } from 'react-icons/bs';
 import { CiBookmarkPlus } from 'react-icons/ci';
-import axios from 'axios'; // Ensure axios is imported
+import axios from 'axios';
 
 const ShowDetailsPage = () => {
     const [show, setShow] = useState(null);
@@ -29,10 +29,17 @@ const ShowDetailsPage = () => {
         const showId = pathParts[pathParts.length - 1];
         setId(showId);
         window.scrollTo(0, 0);
+    }, []);
+
+    useEffect(() => {
         const fetchShowDetails = async () => {
+            if (!id) return;
+
+            const apiKey = process.env.NEXT_PUBLIC_TMDB_KEY;
+            const startLoadingTime = Date.now();
+            setLoading(true);
+
             try {
-                if (!id) return;
-                const apiKey = process.env.NEXT_PUBLIC_TMDB_KEY;
                 const responses = await Promise.all([
                     fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${apiKey}`),
                     fetch(`https://api.themoviedb.org/3/tv/${id}/videos?api_key=${apiKey}`),
@@ -41,7 +48,6 @@ const ShowDetailsPage = () => {
                 ]);
 
                 const jsonResponses = await Promise.all(responses.map(res => res.json()));
-
                 const [showData, trailerData, similarData, castData] = jsonResponses;
 
                 setShow(showData);
@@ -50,6 +56,10 @@ const ShowDetailsPage = () => {
                 setCast(castData.cast);
             } catch (error) {
                 console.error('Error fetching show details:', error);
+            } finally {
+                const elapsedLoadingTime = Date.now() - startLoadingTime;
+                const remainingLoadingTime = Math.max(1000 - elapsedLoadingTime, 0);
+                setTimeout(() => setLoading(false), remainingLoadingTime);
             }
         };
 
@@ -58,7 +68,7 @@ const ShowDetailsPage = () => {
                 const res = await fetch('/api/currentUser');
                 const user = await res.json();
                 const userId = user._id;
-                const authToken = localStorage.getItem('authToken'); // Assuming you store authToken in localStorage after login
+                const authToken = localStorage.getItem('authToken');
                 const response = await axios.get(`/api/users/${userId}/watchlist`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`
@@ -69,16 +79,11 @@ const ShowDetailsPage = () => {
 
                 const isInList = response.data.some(item => item.tvShowIds.includes(id));
                 setIsInWatchlist(isInList);
-                if (isInList) {
-                    setLoading(false);
-                } else if (id) {
-                    setLoading(false);
-                }
             } catch (error) {
                 console.error('Error fetching watchlists:', error);
-                // Handle error (e.g., show error message to user)
             }
         };
+
         fetchShowDetails();
         fetchWatchlists();
     }, [id]);
@@ -95,10 +100,8 @@ const ShowDetailsPage = () => {
 
             setIsInWatchlist(true);
             console.log('Added to watchlist:', response.data);
-            // Optionally: Show success message to user (e.g., toast notification)
         } catch (error) {
             console.error('Error adding to watchlist:', error);
-            // Handle error (e.g., show error message to user)
         }
     };
 
@@ -116,10 +119,8 @@ const ShowDetailsPage = () => {
 
             setIsInWatchlist(false);
             console.log('Removed from watchlist:', response.data);
-            // Optionally: Show success message to user (e.g., toast notification)
         } catch (error) {
             console.error('Error removing from watchlist:', error);
-            // Handle error (e.g., show error message to user)
         }
     };
 
@@ -156,20 +157,18 @@ const ShowDetailsPage = () => {
         ],
     };
 
-
-
-    if (!show && !loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
-                <p>Show not found</p>
-            </div>
-        );
-    }
-
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
                 <span className="loading loading-ring loading-lg"></span>
+            </div>
+        );
+    }
+
+    if (!show) {
+        return (
+            <div className="flex items-center justify-center min-h-screen text-white bg-base-200">
+                <p>Show not found</p>
             </div>
         );
     }
@@ -213,7 +212,7 @@ const ShowDetailsPage = () => {
                                         </button>
                                         <button
                                             onClick={handleWatchlistToggle}
-                                            className={`flex items-center justify-center px-6 py-2 text-white rounded-md hover:bg-indigo-700 ${isInWatchlist ? 'bg-error hover:bg-error/90' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                                            className={`flex items-center justify-center px-6 py-2 text-white rounded-md  ${isInWatchlist ? 'bg-error hover:bg-error/90' : 'bg-indigo-600 hover:bg-indigo-700'}`}
                                         >
                                             <CiBookmarkPlus className="w-5 h-5 mr-2" />
                                             <span>{isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}</span>
