@@ -82,7 +82,7 @@ const AnimeSlider = () => {
   };
 
   return (
-    <div className="mx-10 mt-10">
+    <div className="mx-10 my-10">
       <h2 className="mb-4 text-2xl font-bold">Trending Anime</h2>
       <Slider {...sliderSettings}>
         {trendingAnime.map((anime) => (

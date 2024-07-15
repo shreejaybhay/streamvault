@@ -69,7 +69,9 @@ const Navbar = () => {
             </li>
           </ul>
         </details>
-        <a href="/" className="text-xl btn btn-ghost">StreamVault</a>
+        <a href="/" className="text-xl btn btn-ghost">
+          StreamVault
+        </a>
       </div>
       <div className="hidden navbar-center lg:flex">
         <ul className="px-1 menu menu-horizontal">
@@ -83,8 +85,8 @@ const Navbar = () => {
             <a href="/animes">Animes</a>
           </li>
           <li>
-              <a href="/watchlist">Watchlist</a>
-            </li>
+            <a href="/watchlist">Watchlist</a>
+          </li>
         </ul>
       </div>
       <div className="flex gap-2 navbar-end">
@@ -107,7 +109,10 @@ const Navbar = () => {
               <div className="w-10 rounded-full">
                 <img
                   alt="User profileURL"
-                  src={img || "https://i.postimg.cc/WzZPrDT4/default-avatar-icon-of-social-media-user-vector.jpg"} // Use default avatar URL or a placeholder
+                  src={
+                    img ||
+                    "https://i.postimg.cc/WzZPrDT4/default-avatar-icon-of-social-media-user-vector.jpg"
+                  } // Use default avatar URL or a placeholder
                 />
               </div>
             </div>
