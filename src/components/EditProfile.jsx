@@ -32,7 +32,7 @@ const EditProfile = ({ id, username, profileURL }) => {
     }
 
     try {
-      const res = await fetch(`http://localhost:3000/api/users/${id}`, {
+      const res = await fetch(`/api/users/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -61,7 +61,7 @@ const EditProfile = ({ id, username, profileURL }) => {
 
   const handleDeleteAccount = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/api/users/${id}`, {
+      const res = await fetch(`/api/users/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
