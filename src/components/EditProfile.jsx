@@ -2,10 +2,14 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const EditProfile = ({ id, username, profileURL }) => {
   const [newUsername, setNewUsername] = useState(username);
   const [newPassword, setNewPassword] = useState("");
+  const [oldPassword, setOldPassword] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [newProfileURL, setNewProfileURL] = useState(profileURL);
   const [editField, setEditField] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -18,39 +22,36 @@ const EditProfile = ({ id, username, profileURL }) => {
   const handleSubmit = async (e, field) => {
     e.preventDefault();
 
-    if (field === "password" && newPassword.length <= 7) {
-      toast.error("Password must be more than 8 characters.");
-      return;
-    }
-
     const updateData = {
-      [field]:
-        field === "profileURL"
-          ? newProfileURL
-          : field === "password"
-          ? newPassword
-          : newUsername,
+      [field]: field === "profileURL" ? newProfileURL : newUsername,
     };
 
+    if (field === "password") {
+      updateData.oldPassword = oldPassword;
+      updateData.newPassword = newPassword;
+    }
+
     try {
-      const res = await fetch(`/api/users/${id}`, {
+      const res = await fetch(`http://localhost:3000/api/users/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(updateData),
       });
-
       if (!res.ok) {
-        throw new Error(`Failed to update ${field}`);
+        const errorResponse = await res.json();
+        throw new Error(errorResponse.message || `Failed to update ${field}`);
       }
-
-      console.log(`${field} updated successfully`);
+      toast.success(`${field} updated successfully`);
+      setErrorMessage(null);
     } catch (error) {
-      console.error(`Error updating ${field}:`, error);
-      setErrorMessage(`Error updating ${field}: ${error.message}`);
+      setErrorMessage(error.message);
+      toast.error(error.message);
     } finally {
       setEditField(null);
+      setNewPassword("");
+      setOldPassword("");
     }
   };
 
@@ -60,34 +61,35 @@ const EditProfile = ({ id, username, profileURL }) => {
 
   const handleDeleteAccount = async () => {
     try {
-      const res = await fetch(`/api/users/${id}`, {
+      const res = await fetch(`http://localhost:3000/api/users/${id}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
       if (!res.ok) {
-        throw new Error("Failed to delete account");
+        const errorResponse = await res.json();
+        throw new Error(errorResponse.message || "Failed to delete account");
       }
 
-      console.log("Account deleted successfully");
-
-      // Call the logout API
-      const logoutRes = await fetch(`/api/logout`, {
-        method: "POST",
-      });
-
-      if (!logoutRes.ok) {
-        throw new Error("Failed to logout after account deletion");
-      }
-
-      router.push("/");
+      toast.success("Account deleted successfully");
+      router.push("/goodbye");
     } catch (error) {
-      console.error("Error deleting account:", error);
       setErrorMessage(`Error deleting account: ${error.message}`);
+      toast.error(error.message);
     }
   };
 
   return (
-    <div className="flex items-center justify-center  h-[calc(100vh-68px)] bg-base-300">
+    <div className="flex items-center justify-center h-[calc(100vh-68px)] bg-base-300">
       <div className="w-full max-w-md p-8 rounded-lg shadow-lg bg-base-200">
         <h2 className="mb-6 text-2xl font-bold text-center text-base-content">
           Edit Profile
@@ -151,7 +153,7 @@ const EditProfile = ({ id, username, profileURL }) => {
         <div className="mb-6">
           <button
             className="w-full px-4 py-2 font-bold rounded text-base-content bg-base-300 focus:outline-none focus:shadow-outline"
-            onClick={handleDeleteAccount}
+            onClick={() => setShowDeleteConfirmation(true)}
           >
             Delete Account
           </button>
@@ -178,7 +180,7 @@ const EditProfile = ({ id, username, profileURL }) => {
                       New Username
                     </label>
                     <input
-                      className="w-full px-3 py-2 leading-tight text-gray-200 bg-gray-900 border border-gray-700 rounded shadow appearance-none focus:outline-none focus:shadow-outline"
+                      className="w-full px-3 py-2 leading-tight text-gray-200 border border-gray-700 rounded shadow appearance-none bg-base-300 focus:outline-none focus:shadow-outline"
                       id="newUsername"
                       type="text"
                       placeholder="New Username"
@@ -189,22 +191,41 @@ const EditProfile = ({ id, username, profileURL }) => {
                 )}
 
                 {editField === "password" && (
-                  <div className="mb-4">
-                    <label
-                      className="block mb-2 text-sm font-bold text-gray-300"
-                      htmlFor="newPassword"
-                    >
-                      New Password
-                    </label>
-                    <input
-                      className="w-full px-3 py-2 leading-tight text-gray-200 bg-gray-900 border border-gray-700 rounded shadow appearance-none focus:outline-none focus:shadow-outline"
-                      id="newPassword"
-                      type="password"
-                      placeholder="New Password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                    />
-                  </div>
+                  <>
+                    <div className="mb-4">
+                      <label
+                        className="block mb-2 text-sm font-bold text-base-content"
+                        htmlFor="oldPassword"
+                      >
+                        Old Password
+                      </label>
+                      <input
+                        className="w-full px-3 py-2 leading-tight text-gray-200 border border-gray-700 rounded shadow appearance-none bg-base-300 focus:outline-none focus:shadow-outline"
+                        id="oldPassword"
+                        type="password"
+                        placeholder="Old Password"
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="mb-4">
+                      <label
+                        className="block mb-2 text-sm font-bold text-base-content"
+                        htmlFor="newPassword"
+                      >
+                        New Password
+                      </label>
+                      <input
+                        className="w-full px-3 py-2 leading-tight text-gray-200 border border-gray-700 rounded shadow appearance-none bg-base-300 focus:outline-none focus:shadow-outline"
+                        id="newPassword"
+                        type="password"
+                        placeholder="New Password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                      />
+                    </div>
+                  </>
                 )}
 
                 {editField === "profileURL" && (
@@ -216,7 +237,7 @@ const EditProfile = ({ id, username, profileURL }) => {
                       New Profile Pic URL
                     </label>
                     <input
-                      className="w-full px-3 py-2 leading-tight border border-gray-700 rounded shadow appearance-none text-text-base-content bg-base-300 focus:outline-none focus:shadow-outline"
+                      className="w-full px-3 py-2 leading-tight border border-gray-700 rounded shadow appearance-none text-base-content bg-base-300 focus:outline-none focus:shadow-outline"
                       id="newProfileURL"
                       type="text"
                       placeholder="New Profile Pic URL"
@@ -228,7 +249,7 @@ const EditProfile = ({ id, username, profileURL }) => {
 
                 <div className="flex items-center justify-center">
                   <button
-                    className="w-full px-4 py-2 font-bold rounded text-info-content bg-info focus:outline-none focus:shadow-outline"
+                    className="w-full px-4 py-2 font-bold duration-300 rounded text-info-content bg-info focus:outline-none focus:shadow-outline hover:bg-info/90"
                     type="submit"
                   >
                     Save Changes
@@ -238,6 +259,58 @@ const EditProfile = ({ id, username, profileURL }) => {
               <button
                 className="absolute top-0 right-0 p-2 m-4 text-gray-300 hover:text-white focus:outline-none"
                 onClick={handleCloseEdit}
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showDeleteConfirmation && (
+          <div className="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="relative w-full max-w-md p-8 rounded-lg shadow-lg bg-base-300">
+              <h2 className="mb-6 text-2xl font-bold text-center text-white">
+                Confirm Deletion
+              </h2>
+              <div className="mb-4">
+                <label
+                  className="block mb-2 text-sm font-bold text-gray-300"
+                  htmlFor="deletePassword"
+                >
+                  Password
+                </label>
+                <input
+                  className="w-full px-3 py-2 leading-tight text-gray-200 border border-gray-700 rounded shadow appearance-none bg-base-300 focus:outline-none focus:shadow-outline"
+                  id="deletePassword"
+                  type="password"
+                  placeholder="Password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center justify-center">
+                <button
+                  className="w-full px-4 py-2 font-bold text-white duration-300 bg-red-500 rounded hover:bg-red-700 focus:outline-none focus:shadow-outline"
+                  onClick={handleDeleteAccount}
+                >
+                  Confirm Delete
+                </button>
+              </div>
+              <button
+                className="absolute top-0 right-0 p-2 m-4 text-gray-300 hover:text-white focus:outline-none"
+                onClick={() => setShowDeleteConfirmation(false)}
               >
                 <svg
                   className="w-6 h-6"
