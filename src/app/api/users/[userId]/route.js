@@ -1,4 +1,5 @@
 import { User } from "@/models/users";
+import { Watchlist } from "@/models/watchlist";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
@@ -32,7 +33,9 @@ export async function DELETE(request, { params }) {
     }
 
     await User.deleteOne({ _id: userId });
-    return NextResponse.json({ message: "User deleted successfully", success: true });
+    await Watchlist.deleteMany({ userId: userId });
+
+    return NextResponse.json({ message: "User and watchlist deleted successfully", success: true });
   } catch (error) {
     console.error("Error deleting user:", error);
     return NextResponse.json({ message: "Error deleting user", success: false }, { status: 500 });

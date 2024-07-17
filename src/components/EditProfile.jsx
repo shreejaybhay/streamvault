@@ -81,7 +81,7 @@ const EditProfile = ({ id, username, profileURL }) => {
       }
 
       toast.success("Account deleted successfully");
-      router.push("/goodbye");
+      router.push("/");
     } catch (error) {
       setErrorMessage(`Error deleting account: ${error.message}`);
       toast.error(error.message);
