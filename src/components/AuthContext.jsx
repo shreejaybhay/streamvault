@@ -9,6 +9,7 @@ export const AuthContext = createContext();
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true); // Add loading state
   const router = useRouter();
 
   useEffect(() => {
@@ -16,9 +17,12 @@ const AuthProvider = ({ children }) => {
       try {
         const response = await axios.get("/api/currentUser");
         setUser(response.data);
-        setError(null); // Clear any previous errors
+        setError(null);
       } catch (error) {
-        handleFetchError(error);
+        setUser(null);
+        setError(error);
+      } finally {
+        setLoading(false); // Set loading to false when done
       }
     };
     fetchUserData();
@@ -26,51 +30,20 @@ const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      setLoading(true); // Set loading when logout starts
       await axios.post("/api/logout");
       setUser(null);
-      setError(null); // Clear any previous errors
-      router.push("/"); // Redirect to home after logout
+      router.push('/login');
     } catch (error) {
-      handleLogoutError(error);
-    }
-  };
-
-  const handleFetchError = (error) => {
-    if (error.response) {
-      // Server-side error
-      console.error("Fetch user data error (server):", error.response.data.message);
-      setError(error.response.data.message);
-    } else if (error.request) {
-      // No response received
-      console.error("Fetch user data error (network):", error.request);
-      setError("Network error. Please try again later.");
-    } else {
-      // Other errors
-      console.error("Fetch user data error:", error.message);
-      setError("An error occurred. Please try again.");
-    }
-  };
-
-  const handleLogoutError = (error) => {
-    if (error.response) {
-      // Server-side error
-      console.error("Logout error (server):", error.response.data.message);
-      setError(error.response.data.message);
-    } else if (error.request) {
-      // No response received
-      console.error("Logout error (network):", error.request);
-      setError("Network error. Please try again later.");
-    } else {
-      // Other errors
-      console.error("Logout error:", error.message);
-      setError("An error occurred. Please try again.");
+      console.error('Logout error:', error);
+    } finally {
+      setLoading(false); // Set loading to false when done
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, logout, error }}>
+    <AuthContext.Provider value={{ user, setUser, error, logout, loading }}>
       {children}
-      {error && <div className="error-message">{error}</div>}
     </AuthContext.Provider>
   );
 };
