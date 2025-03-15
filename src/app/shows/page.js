@@ -1,16 +1,13 @@
 "use client"
 import { useState, useEffect, useRef, useCallback } from "react"
-import { BsFillMicFill, BsXCircleFill, BsFilterLeft, BsExclamationCircleFill } from "react-icons/bs"
+import { BsFillMicFill, BsXCircleFill, BsFilterLeft, BsExclamationCircleFill, BsTv, BsArrowCounterclockwise } from "react-icons/bs"
 import { FaChevronLeft, FaChevronRight, FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa"
-import { BiMovie } from "react-icons/bi"
 import { motion, AnimatePresence } from "framer-motion"
 import MediaCard from "@/components/MediaCard"
 import { FiImage } from "react-icons/fi"
-import { FaStar } from "react-icons/fa"
 
 const ShowsPage = () => {
   const [shows, setShows] = useState([])
-  const [additionalShows, setAdditionalShows] = useState([])
   const [searchTerm, setSearchTerm] = useState("") // This is for the input value
   const [activeSearchTerm, setActiveSearchTerm] = useState("") // This is for the actual search
   const [page, setPage] = useState(1)
@@ -21,18 +18,18 @@ const ShowsPage = () => {
   const [isListening, setIsListening] = useState(false)
   const [voiceError, setVoiceError] = useState("")
   const [totalPages, setTotalPages] = useState(1)
-  const [sortBy, setSortBy] = useState("popularity.desc")
+  const [sortBy, setSortBy] = useState("first_air_date.desc")
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
   const [genres, setGenres] = useState([]) // Add this line
-  const [showPermissionGuide, setShowPermissionGuide] = useState(false);
+  const [showPermissionGuide, setShowPermissionGuide] = useState(false)
+  const [selectedList, setSelectedList] = useState('') // Add this line
 
   const searchContainerRef = useRef(null)
   const searchInputRef = useRef(null)
 
   const api_key = process.env.NEXT_PUBLIC_TMDB_KEY
   const genreKey = "tv_selected_genre"
-  const searchKey = "tv_search_term"
   const SCROLL_POSITION_KEY = "tv_scroll_position"
 
   // Add fetchSuggestions function
@@ -87,37 +84,29 @@ const ShowsPage = () => {
         url = `https://api.themoviedb.org/3/search/tv?api_key=${api_key}&query=${encodeURIComponent(
           activeSearchTerm
         )}&page=${page}`
+      } else if (selectedList) {
+        url = `https://api.themoviedb.org/3/tv/${selectedList}?api_key=${api_key}&page=${page}`
+      } else if (selectedGenre) {
+        url = `https://api.themoviedb.org/3/discover/tv?api_key=${api_key}&with_genres=${selectedGenre}&page=${page}&sort_by=${sortBy}`
       } else {
-        const baseUrl = `https://api.themoviedb.org/3/discover/tv?api_key=${api_key}&page=${page}`
-        const genreParam = selectedGenre ? `&with_genres=${selectedGenre}` : ''
-        const sortParam = `&sort_by=${sortBy}`
-        const airDateParam = `&first_air_date.lte=${new Date().toISOString().split('T')[0]}`
-        const languageParam = '&with_original_language=en'
-        const voteCountParam = '&vote_count.gte=50'
-        
-        url = `${baseUrl}${genreParam}${sortParam}${airDateParam}${languageParam}${voteCountParam}`
+        url = `https://api.themoviedb.org/3/discover/tv?api_key=${api_key}&page=${page}&sort_by=${sortBy}&vote_count.gte=100`
       }
 
       try {
         const response = await fetch(url)
+        if (!response.ok) throw new Error('Network response was not ok')
         const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch shows: ${data.status_message}`)
-        }
-
         setShows(data.results)
-        setAdditionalShows([])
         setTotalPages(Math.min(data.total_pages, 500))
       } catch (error) {
-        console.error("Error fetching TV shows:", error)
+        console.error("Error fetching shows:", error)
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchShows()
-  }, [activeSearchTerm, page, selectedGenre, api_key, sortBy])
+  }, [activeSearchTerm, page, selectedGenre, api_key, sortBy, selectedList])
 
   const handleSearchChange = (e) => {
     const searchTermValue = e.target.value
@@ -155,22 +144,23 @@ const ShowsPage = () => {
   }
 
   const handlePageChange = (newPage) => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-
-    setPage(newPage)
-    localStorage.setItem("tv_page", newPage.toString())
-
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location)
-      url.searchParams.set("page", newPage.toString())
-      window.history.pushState({}, "", url)
-    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setPage(newPage);
+    localStorage.setItem("tv_page", newPage.toString());
   }
 
   const handleGenreChange = (genreId) => {
-    setSelectedGenre(genreId === selectedGenre ? "" : genreId)
-    setPage(1)
-    localStorage.setItem(genreKey, genreId === selectedGenre ? "" : genreId)
+    const newGenre = genreId === selectedGenre ? "" : genreId;
+    setSelectedGenre(newGenre);
+    setPage(1);
+    
+    // Clear other filters when selecting a genre
+    if (newGenre) {
+        setSortBy("first_air_date.desc"); // Reset to default sort
+        setSelectedList(""); // Clear selected list
+    }
+    
+    localStorage.setItem(genreKey, newGenre);
   }
 
   const clearFilters = () => {
@@ -331,29 +321,20 @@ const ShowsPage = () => {
     )
   }
 
-  const ShowSkeleton = () => (
-    <div className="flex flex-col h-full overflow-hidden rounded-lg shadow-lg animate-pulse bg-base-100 border border-base-300">
-      <div className="relative aspect-[2/3] bg-base-300"></div>
-      <div className="p-4 space-y-3">
-        <div className="h-5 rounded bg-base-300 w-3/4"></div>
-        <div className="flex justify-between">
-          <div className="h-4 rounded bg-base-300 w-1/4"></div>
-          <div className="h-4 rounded bg-base-300 w-1/4"></div>
-        </div>
-      </div>
-    </div>
-  )
-
   const handleSortChange = (newSortBy) => {
-    setSortBy(newSortBy)
-    setPage(1)
-    localStorage.setItem("tv_sort_by", newSortBy)
-    
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location)
-      url.searchParams.set("page", "1")
-      window.history.pushState({}, "", url)
-    }
+    setSortBy(newSortBy);
+    setPage(1);
+    // Clear other filters when changing sort
+    setSelectedList('');
+    setSelectedGenre('');
+  }
+
+  const handleListChange = (list) => {
+    setSelectedList(list);
+    setPage(1);
+    // Clear other filters when changing list
+    setSortBy("first_air_date.desc"); // Reset to default sort
+    setSelectedGenre('');
   }
 
   useEffect(() => {
@@ -385,6 +366,16 @@ const ShowsPage = () => {
 
     fetchGenres()
   }, [api_key])
+
+  // Add this useEffect to clean up URL parameters
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (url.search) {  // If there are any search parameters
+        window.history.replaceState({}, '', url.pathname);
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen text-base-content bg-gradient-to-br from-base-300 to-base-200">
@@ -426,7 +417,7 @@ const ShowsPage = () => {
 
               {/* Suggestions dropdown */}
               <AnimatePresence>
-                {showSuggestions && suggestions.length > 0 && (
+                {showSuggestions && (searchTerm.trim() || isSearching) && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -434,34 +425,44 @@ const ShowsPage = () => {
                     transition={{ duration: 0.2 }}
                     className="absolute z-50 w-full mt-2 overflow-hidden bg-base-100 border rounded-lg shadow-xl border-base-content/10"
                   >
-                    <div className="max-h-[400px] overflow-y-auto">
-                      {suggestions.map((show) => (
-                        <div
-                          key={show.id}
-                          onClick={() => handleSuggestionClick(show)}
-                          className="flex items-center gap-3 p-3 transition-colors cursor-pointer hover:bg-base-200"
-                        >
-                          {show.poster_path ? (
-                            <img
-                              src={`https://image.tmdb.org/t/p/w92${show.poster_path}`}
-                              alt={show.name}
-                              className="w-12 h-18 object-cover rounded-md"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center w-12 h-18 bg-base-200 rounded-md">
-                              <FiImage className="text-base-content/30" size={20} />
-                            </div>
-                          )}
-                          <div className="flex-grow">
-                            <div className="font-medium line-clamp-1">{show.name}</div>
-                            <div className="text-sm text-base-content/70">
-                              {show.first_air_date?.split("-")[0] || "TBA"}
+                    {isSearching ? (
+                      <div className="flex items-center justify-center p-4">
+                        <div className="loading loading-spinner loading-md"></div>
+                      </div>
+                    ) : suggestions.length > 0 ? (
+                      <div className="max-h-[400px] overflow-y-auto">
+                        {suggestions.map((show) => (
+                          <div
+                            key={show.id}
+                            onClick={() => handleSuggestionClick(show)}
+                            className="flex items-center gap-3 p-3 transition-colors cursor-pointer hover:bg-base-200"
+                          >
+                            {show.poster_path ? (
+                              <img
+                                src={`https://image.tmdb.org/t/p/w92${show.poster_path}`}
+                                alt={show.name}
+                                className="w-12 h-18 object-cover rounded-md"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="flex items-center justify-center w-12 h-18 bg-base-200 rounded-md">
+                                <FiImage className="text-base-content/30" size={20} />
+                              </div>
+                            )}
+                            <div className="flex-grow">
+                              <div className="font-medium line-clamp-1">{show.name}</div>
+                              <div className="text-sm text-base-content/70">
+                                {show.first_air_date?.split("-")[0] || "TBA"}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : searchTerm.trim() ? (
+                      <div className="p-4 text-center text-base-content/70">
+                        No shows found
+                      </div>
+                    ) : null}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -498,80 +499,227 @@ const ShowsPage = () => {
               className="overflow-hidden"
             >
               <div className="p-4 mb-6 rounded-lg bg-base-100">
-                <div className="mb-6">
-                  <h2 className="mb-3 text-lg font-semibold">Sort By</h2>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => handleSortChange(e.target.value)}
-                    className="select select-bordered w-full max-w-xs"
-                  >
-                    <option value="first_air_date.desc">Latest Releases</option>
-                    <option value="popularity.desc">Most Popular</option>
-                    <option value="vote_average.desc">Highest Rated</option>
-                    <option value="vote_count.desc">Most Voted</option>
-                    <option value="first_air_date.asc">Oldest First</option>
-                  </select>
-                </div>
-
-                <h2 className="mb-3 text-lg font-semibold">Genre</h2>
-                <div className="flex flex-wrap gap-2">
-                  {genres?.map((genre) => (
+                {/* Sort By Section */}
+                <div className={`mb-6 ${(selectedList || selectedGenre) ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <h2 className="mb-3 text-lg font-semibold flex items-center gap-2">
+                    Sort By
+                    {(selectedList || selectedGenre) && (
+                      <span className="text-sm font-normal text-base-content/70">
+                        (Disabled while {selectedList ? 'list' : 'genre'} filter is active)
+                      </span>
+                    )}
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
                     <button
-                      key={genre.id}
-                      onClick={() => handleGenreChange(genre.id.toString())}
+                      onClick={() => handleSortChange("first_air_date.desc")}
                       className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
-                        selectedGenre === genre.id.toString()
+                        sortBy === "first_air_date.desc"
                           ? "bg-primary text-primary-content"
                           : "bg-base-300 hover:bg-base-200 text-base-content"
                       }`}
+                      disabled={selectedList || selectedGenre}
                     >
-                      {genre.name}
+                      Latest Releases
                     </button>
-                  ))}
+                    <button
+                      onClick={() => handleSortChange("popularity.desc")}
+                      className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                        sortBy === "popularity.desc"
+                          ? "bg-primary text-primary-content"
+                          : "bg-base-300 hover:bg-base-200 text-base-content"
+                      }`}
+                      disabled={selectedList || selectedGenre}
+                    >
+                      Most Popular
+                    </button>
+                    <button
+                      onClick={() => handleSortChange("vote_average.desc")}
+                      className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                        sortBy === "vote_average.desc"
+                          ? "bg-primary text-primary-content"
+                          : "bg-base-300 hover:bg-base-200 text-base-content"
+                      }`}
+                      disabled={selectedList || selectedGenre}
+                    >
+                      Highest Rated
+                    </button>
+                    <button
+                      onClick={() => handleSortChange("vote_count.desc")}
+                      className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                        sortBy === "vote_count.desc"
+                          ? "bg-primary text-primary-content"
+                          : "bg-base-300 hover:bg-base-200 text-base-content"
+                      }`}
+                      disabled={selectedList || selectedGenre}
+                    >
+                      Most Voted
+                    </button>
+                    <button
+                      onClick={() => handleSortChange("first_air_date.asc")}
+                      className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                        sortBy === "first_air_date.asc"
+                          ? "bg-primary text-primary-content"
+                          : "bg-base-300 hover:bg-base-200 text-base-content"
+                      }`}
+                      disabled={selectedList || selectedGenre}
+                    >
+                      Oldest First
+                    </button>
+                  </div>
+                  {sortBy !== "first_air_date.desc" && !selectedList && !selectedGenre && (
+                    <button
+                      onClick={() => handleSortChange("first_air_date.desc")}
+                      className="mt-4 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full bg-error/10 text-error hover:bg-error/20 transition-colors"
+                    >
+                      <BsXCircleFill size={14} />
+                      <span>Clear sort filter</span>
+                    </button>
+                  )}
                 </div>
-                
-                {/* Clear filter button */}
-                {selectedGenre && (
-                  <button
-                    onClick={clearFilters}
-                    className="mt-4 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full bg-error/10 text-error hover:bg-error/20 transition-colors"
-                  >
-                    <BsXCircleFill size={14} />
-                    <span>Clear genre filter</span>
-                  </button>
-                )}
+
+                {/* TV Series Lists Section */}
+                <div className={`mb-6 ${(sortBy !== "first_air_date.desc" || selectedGenre) ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <h2 className="mb-3 text-lg font-semibold flex items-center gap-2">
+                    TV Series Lists
+                    {(sortBy !== "first_air_date.desc" || selectedGenre) && (
+                      <span className="text-sm font-normal text-base-content/70">
+                        (Disabled while {sortBy !== "first_air_date.desc" ? 'sort' : 'genre'} filter is active)
+                      </span>
+                    )}
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => handleListChange('airing_today')}
+                      className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                        selectedList === 'airing_today'
+                          ? "bg-primary text-primary-content"
+                          : "bg-base-300 hover:bg-base-200 text-base-content"
+                      }`}
+                      disabled={sortBy !== "first_air_date.desc" || selectedGenre}
+                    >
+                      Airing Today
+                    </button>
+                    <button
+                      onClick={() => handleListChange('on_the_air')}
+                      className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                        selectedList === 'on_the_air'
+                          ? "bg-primary text-primary-content"
+                          : "bg-base-300 hover:bg-base-200 text-base-content"
+                      }`}
+                      disabled={sortBy !== "first_air_date.desc" || selectedGenre}
+                    >
+                      On The Air
+                    </button>
+                    <button
+                      onClick={() => handleListChange('popular')}
+                      className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                        selectedList === 'popular'
+                          ? "bg-primary text-primary-content"
+                          : "bg-base-300 hover:bg-base-200 text-base-content"
+                      }`}
+                      disabled={sortBy !== "first_air_date.desc" || selectedGenre}
+                    >
+                      Popular
+                    </button>
+                    <button
+                      onClick={() => handleListChange('top_rated')}
+                      className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                        selectedList === 'top_rated'
+                          ? "bg-primary text-primary-content"
+                          : "bg-base-300 hover:bg-base-200 text-base-content"
+                      }`}
+                      disabled={sortBy !== "first_air_date.desc" || selectedGenre}
+                    >
+                      Top Rated
+                    </button>
+                  </div>
+                  {selectedList && !selectedGenre && sortBy === "first_air_date.desc" && (
+                    <button
+                      onClick={() => handleListChange('')}
+                      className="mt-4 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full bg-error/10 text-error hover:bg-error/20 transition-colors"
+                    >
+                      <BsXCircleFill size={14} />
+                      <span>Clear list filter</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Genre Section */}
+                <div className={`${(sortBy !== "first_air_date.desc" || selectedList) ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <h2 className="mb-3 text-lg font-semibold flex items-center gap-2">
+                    Genre
+                    {(sortBy !== "first_air_date.desc" || selectedList) && (
+                      <span className="text-sm font-normal text-base-content/70">
+                        (Disabled while {sortBy !== "first_air_date.desc" ? 'sort' : 'list'} filter is active)
+                      </span>
+                    )}
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {genres?.map((genre) => (
+                      <button
+                        key={genre.id}
+                        onClick={() => handleGenreChange(genre.id.toString())}
+                        className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                          selectedGenre === genre.id.toString()
+                            ? "bg-primary text-primary-content"
+                            : "bg-base-300 hover:bg-base-200 text-base-content"
+                        }`}
+                        disabled={sortBy !== "first_air_date.desc" || selectedList}
+                      >
+                        {genre.name}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {selectedGenre && sortBy === "first_air_date.desc" && !selectedList && (
+                    <button
+                      onClick={clearFilters}
+                      className="mt-4 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full bg-error/10 text-error hover:bg-error/20 transition-colors"
+                    >
+                      <BsXCircleFill size={14} />
+                      <span>Clear genre filter</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {[...Array(18)].map((_, index) => (
-              <ShowSkeleton key={index} />
-            ))}
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
-        ) : shows.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {shows.map((show) => (
-              <MediaCard key={show.id} item={show} type="show" onClick={saveScrollPosition} />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center p-8 text-center">
-            <p className="text-xl font-semibold">No TV shows found</p>
-            <p className="mt-2 text-base-content/70">Try adjusting your search or filters</p>
-            {(searchTerm || selectedGenre) && (
+        ) : shows.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <BsTv className="text-6xl text-base-content/30 mb-4" />
+            <h3 className="text-2xl font-bold text-base-content/50">No Shows Found</h3>
+            <p className="text-base-content/60 mt-2 text-center">
+              {activeSearchTerm 
+                ? `No results found for "${activeSearchTerm}"`
+                : selectedGenre
+                ? "No shows found for selected genre"
+                : "No shows available"}
+            </p>
+            {(activeSearchTerm || selectedGenre) && (
               <button
                 onClick={() => {
-                  clearSearch()
-                  clearFilters()
+                  clearSearch();
+                  clearFilters();
                 }}
-                className="mt-4 btn btn-primary btn-sm"
+                className="mt-6 px-6 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl 
+                  transition-colors duration-300 flex items-center gap-2"
               >
+                <BsArrowCounterclockwise className="w-4 h-4" />
                 Clear all filters
               </button>
             )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+            {shows.map((show) => (
+              <MediaCard key={show.id} item={show} type="tv" onClick={saveScrollPosition} />
+            ))}
           </div>
         )}
 

@@ -1,7 +1,7 @@
 "use client"
 /* eslint-disable @next/next/no-img-element */
 import { useState, useEffect, useRef, useCallback } from "react"
-import { BsFillMicFill, BsXCircleFill, BsFilterLeft } from "react-icons/bs"
+import { BsFillMicFill, BsXCircleFill, BsFilterLeft, BsArrowCounterclockwise } from "react-icons/bs"
 import { FaChevronLeft, FaChevronRight, FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa"
 import { BiMovie } from "react-icons/bi"
 import { motion, AnimatePresence } from "framer-motion"
@@ -27,6 +27,8 @@ const MoviesPage = () => {
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [isSearching, setIsSearching] = useState(false)
     const searchContainerRef = useRef(null)
+    const [selectedList, setSelectedList] = useState('')
+    const [sortBy, setSortBy] = useState("popularity.desc")
 
     const searchKey = "movie_search_term"
     const selectedGenreKey = "movie_selected_genre"
@@ -90,36 +92,38 @@ const MoviesPage = () => {
 
     useEffect(() => {
         const fetchMovies = async () => {
-            setIsLoading(true)
-            let url
+            setIsLoading(true);
+            let url;
 
             if (activeSearchTerm) {
-                url = `https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${encodeURIComponent(activeSearchTerm)}&page=${page}`
+                url = `https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${encodeURIComponent(
+                    activeSearchTerm
+                )}&page=${page}&per_page=20`;
+            } else if (selectedList) {
+                url = `https://api.themoviedb.org/3/movie/${selectedList}?api_key=${api_key}&page=${page}&per_page=20`;
             } else if (selectedGenre) {
-                url = `https://api.themoviedb.org/3/discover/movie?api_key=${api_key}&with_genres=${selectedGenre}&page=${page}`
+                url = `https://api.themoviedb.org/3/discover/movie?api_key=${api_key}&with_genres=${selectedGenre}&page=${page}&sort_by=${sortBy}&per_page=20`;
             } else {
-                url = `https://api.themoviedb.org/3/movie/popular?api_key=${api_key}&page=${page}`
+                url = `https://api.themoviedb.org/3/discover/movie?api_key=${api_key}&page=${page}&sort_by=${sortBy}&vote_count.gte=100&per_page=20`;
             }
 
             try {
-                const response = await fetch(url)
-                const data = await response.json()
-
-                setMovies(data.results.slice(0, 18))
-                setAdditionalMovies([])
-                setTotalPages(Math.min(data.total_pages, 500))
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                setMovies(data.results.slice(0, 20));
+                // Calculate total pages based on 20 items per page
+                setTotalPages(Math.min(Math.ceil(data.total_results / 20), 500));
             } catch (error) {
-                console.error("Error fetching movies:", error)
+                console.error("Error fetching movies:", error);
+                setMovies([]);
             } finally {
-                setIsLoading(false)
-                if (page === 1 && (activeSearchTerm || selectedGenre)) {
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                }
+                setIsLoading(false);
             }
-        }
+        };
 
-        fetchMovies()
-    }, [activeSearchTerm, page, selectedGenre, api_key]) // Changed searchTerm to activeSearchTerm
+        fetchMovies();
+    }, [activeSearchTerm, page, selectedGenre, api_key, selectedList, sortBy]);
 
     const handleGenreChange = (genreId) => {
         setSelectedGenre(genreId === selectedGenre ? "" : genreId)
@@ -128,20 +132,15 @@ const MoviesPage = () => {
     }
 
     const clearFilters = () => {
-        setSelectedGenre("")
-        setPage(1)
-        localStorage.setItem(selectedGenreKey, "")
-    }
+        setSelectedGenre("");
+        setSelectedList("");
+        setPage(1);
+    };
 
     const handlePageChange = (newPage) => {
-        window.scrollTo({ top: 0, behavior: "smooth" })
-
-        setPage(newPage)
-        localStorage.setItem("page", newPage.toString())
-
-        const url = new URL(window.location)
-        url.searchParams.set("page", newPage.toString())
-        window.history.pushState({}, "", url)
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setPage(newPage);
+        localStorage.setItem("movie_page", newPage.toString());
     }
 
     const handleSearchChange = (e) => {
@@ -334,6 +333,27 @@ const MoviesPage = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [])
 
+    const handleListChange = (list) => {
+        setSelectedList(list);
+        setPage(1);
+        setSelectedGenre(''); // Clear genre when changing list
+    };
+
+    const handleSortChange = (newSortBy) => {
+        setSortBy(newSortBy);
+        setPage(1);
+    };
+
+    useEffect(() => {
+        // Clean up URL parameters on component mount
+        if (typeof window !== 'undefined') {
+            const url = new URL(window.location.href);
+            if (url.search) {  // If there are any search parameters
+                window.history.replaceState({}, '', url.pathname);
+            }
+        }
+    }, []);
+
     return (
         <div className="min-h-screen text-base-content bg-gradient-to-br from-base-300 to-base-200">
             <div className="container px-4 py-8 mx-auto">
@@ -367,7 +387,7 @@ const MoviesPage = () => {
                                 <button
                                     onClick={() => handleSearchSubmit(searchTerm)}
                                     className="btn btn-primary"
-                                    disabled={isLoading}
+                                    disabled={!searchTerm?.trim() || isLoading}
                                 >
                                     Search
                                 </button>
@@ -466,32 +486,94 @@ const MoviesPage = () => {
                             className="overflow-hidden"
                         >
                             <div className="p-4 mb-6 rounded-lg bg-base-100">
-                                <h2 className="mb-3 text-lg font-semibold">Genre</h2>
-                                <div className="flex flex-wrap gap-2">
-                                    {genres.map((genre) => (
+                                {/* Movie Lists Section */}
+                                <div className="mb-6">
+                                    <h2 className="mb-3 text-lg font-semibold">Movie Lists</h2>
+                                    <div className="flex flex-wrap gap-2">
                                         <button
-                                            key={genre.id}
-                                            onClick={() => handleGenreChange(genre.id.toString())}
-                                            className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
-                                                selectedGenre === genre.id.toString()
+                                            onClick={() => handleListChange('now_playing')}
+                                            className={`px-3 py-1.5 text-sm rounded-full transition-colors ${selectedList === 'now_playing'
                                                     ? "bg-primary text-primary-content"
                                                     : "bg-base-300 hover:bg-base-200 text-base-content"
-                                            }`}
+                                                }`}
                                         >
-                                            {genre.name}
+                                            Now Playing
                                         </button>
-                                    ))}
+                                        <button
+                                            onClick={() => handleListChange('popular')}
+                                            className={`px-3 py-1.5 text-sm rounded-full transition-colors ${selectedList === 'popular'
+                                                    ? "bg-primary text-primary-content"
+                                                    : "bg-base-300 hover:bg-base-200 text-base-content"
+                                                }`}
+                                        >
+                                            Popular
+                                        </button>
+                                        <button
+                                            onClick={() => handleListChange('top_rated')}
+                                            className={`px-3 py-1.5 text-sm rounded-full transition-colors ${selectedList === 'top_rated'
+                                                    ? "bg-primary text-primary-content"
+                                                    : "bg-base-300 hover:bg-base-200 text-base-content"
+                                                }`}
+                                        >
+                                            Top Rated
+                                        </button>
+                                        <button
+                                            onClick={() => handleListChange('upcoming')}
+                                            className={`px-3 py-1.5 text-sm rounded-full transition-colors ${selectedList === 'upcoming'
+                                                    ? "bg-primary text-primary-content"
+                                                    : "bg-base-300 hover:bg-base-200 text-base-content"
+                                                }`}
+                                        >
+                                            Upcoming
+                                        </button>
+                                    </div>
+                                    {selectedList && (
+                                        <button
+                                            onClick={() => handleListChange('')}
+                                            className="mt-4 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full bg-error/10 text-error hover:bg-error/20 transition-colors"
+                                        >
+                                            <BsXCircleFill size={14} />
+                                            <span>Clear list filter</span>
+                                        </button>
+                                    )}
                                 </div>
-                                
-                                {selectedGenre && (
-                                    <button
-                                        onClick={clearFilters}
-                                        className="mt-4 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full bg-error/10 text-error hover:bg-error/20 transition-colors"
-                                    >
-                                        <BsXCircleFill size={14} />
-                                        <span>Clear genre filter</span>
-                                    </button>
-                                )}
+
+                                {/* Genre Section - Disabled when list is selected */}
+                                <div className={`${selectedList ? 'opacity-50 pointer-events-none' : ''}`}>
+                                    <h2 className="mb-3 text-lg font-semibold flex items-center gap-2">
+                                        Genre
+                                        {selectedList && (
+                                            <span className="text-sm font-normal text-base-content/70">
+                                                (Disabled while list filter is active)
+                                            </span>
+                                        )}
+                                    </h2>
+                                    <div className="flex flex-wrap gap-2">
+                                        {genres.map((genre) => (
+                                            <button
+                                                key={genre.id}
+                                                onClick={() => handleGenreChange(genre.id.toString())}
+                                                className={`px-3 py-1.5 text-sm rounded-full transition-colors ${selectedGenre === genre.id.toString()
+                                                        ? "bg-primary text-primary-content"
+                                                        : "bg-base-300 hover:bg-base-200 text-base-content"
+                                                    }`}
+                                                disabled={selectedList}
+                                            >
+                                                {genre.name}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {selectedGenre && !selectedList && (
+                                        <button
+                                            onClick={clearFilters}
+                                            className="mt-4 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full bg-error/10 text-error hover:bg-error/20 transition-colors"
+                                        >
+                                            <BsXCircleFill size={14} />
+                                            <span>Clear genre filter</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </motion.div>
                     )}
@@ -499,22 +581,41 @@ const MoviesPage = () => {
 
                 {/* Movie grid or loading skeletons */}
                 {isLoading ? (
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6">
-                        {[...Array(18)].map((_, index) => (
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                        {[...Array(20)].map((_, index) => (
                             <MovieSkeleton key={index} />
                         ))}
                     </div>
-                ) : movies.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6">
-                        {movies.map((movie) => (
-                            <MediaCard key={movie.id} item={movie} type="movie" onClick={saveScrollPosition} />
-                        ))}
-                    </div>
-                ) : (
+                ) : movies.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20">
                         <BiMovie className="text-6xl text-base-content/30 mb-4" />
-                        <h3 className="text-2xl font-bold text-base-content/50">No movies found</h3>
-                        <p className="text-base-content/60 mt-2">Try adjusting your search or filters</p>
+                        <h3 className="text-2xl font-bold text-base-content/50">No Movies Found</h3>
+                        <p className="text-base-content/60 mt-2 text-center">
+                            {activeSearchTerm
+                                ? `No results found for "${activeSearchTerm}"`
+                                : selectedGenre
+                                    ? "No movies found for selected genre"
+                                    : "No movies available"}
+                        </p>
+                        {(activeSearchTerm || selectedGenre) && (
+                            <button
+                                onClick={() => {
+                                    clearSearch();
+                                    clearFilters();
+                                }}
+                                className="mt-6 px-6 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl 
+                                    transition-colors duration-300 flex items-center gap-2"
+                            >
+                                <BsArrowCounterclockwise className="w-4 h-4" />
+                                Clear all filters
+                            </button>
+                        )}
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                        {movies.slice(0, 20).map((movie) => (
+                            <MediaCard key={movie.id} item={movie} type="movie" onClick={saveScrollPosition} />
+                        ))}
                     </div>
                 )}
 

@@ -49,7 +49,7 @@
   }
   
   .btn-primary-custom {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 
+    @apply bg-primary text-white hover:bg-primary/90 transition-all duration-300 
     rounded-lg px-4 py-2 font-medium shadow-sm hover:shadow-md active:scale-95;
   }
   
@@ -76,23 +76,40 @@
   }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Modern & Sleek Design */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(var(--background) / 0.5);
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 4px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.1)
+  );
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.2)
+  );
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.1);
 }
 
 /* Mobile optimizations */
@@ -100,10 +117,10 @@
   html {
     font-size: 14px;
   }
+  
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
 
 }
-
-
-
-
-

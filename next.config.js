@@ -7,7 +7,8 @@ module.exports = {
       'i.postimg.cc',
       'via.placeholder.com',
       'upload.wikimedia.org',
-      'yts.mx'
+      'yts.mx',
+      'avatars.githubusercontent.com' // Added GitHub avatars domain
     ],
   },
   async rewrites() {

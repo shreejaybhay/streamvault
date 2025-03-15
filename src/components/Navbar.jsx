@@ -1,7 +1,7 @@
 "use client";
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { AuthContext } from "./AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation"; // Add usePathname
 import { FiUser, FiLogIn, FiMenu, FiX, FiHome, FiFilm, FiTv, FiBookmark, FiSettings, FiLogOut } from "react-icons/fi";
 import { HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,6 +11,7 @@ const Navbar = () => {
   const { user, logout, loading } = useContext(AuthContext); // Add loading state from context
   const [img, setImg] = useState(null);
   const router = useRouter();
+  const pathname = usePathname(); // Add this hook
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -93,6 +94,15 @@ const Navbar = () => {
     { href: "/animes", label: "Anime", icon: FiTv },
     { href: "/watchlist", label: "Watchlist", icon: FiBookmark },
   ];
+
+  // Function to check if a nav item is active
+  const isActive = (href) => {
+    if (href === '/') {
+      return pathname === href;
+    }
+    // More specific matching to prevent partial matches
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   // Loading state UI
   if (loading) {
@@ -190,9 +200,13 @@ const Navbar = () => {
                         <Link
                           href={item.href}
                           onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-200 transition-all duration-200"
+                          className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
+                            isActive(item.href)
+                              ? "bg-primary text-primary-foreground"
+                              : "hover:bg-base-200"
+                          }`}
                         >
-                          <item.icon className="w-5 h-5 text-primary" />
+                          <item.icon className={`w-5 h-5 ${isActive(item.href) ? "text-primary-foreground" : "text-primary"}`} />
                           <span className="font-medium">{item.label}</span>
                         </Link>
                       </motion.div>
@@ -298,10 +312,28 @@ const Navbar = () => {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex items-center gap-2 font-medium hover:text-primary transition-colors duration-300"
+                  className={`flex items-center gap-2 font-medium transition-colors duration-300 relative py-1 ${
+                    isActive(item.href)
+                      ? "text-primary"
+                      : "text-base-content/80 hover:text-primary"
+                  }`}
                 >
                   <item.icon className="w-4 h-4" />
-                  {item.label}
+                  <span>{item.label}</span>
+                  <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-transparent">
+                    {isActive(item.href) && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute inset-0 bg-primary rounded-full"
+                        transition={{
+                          type: "spring",
+                          stiffness: 380,
+                          damping: 30,
+                          mass: 0.8
+                        }}
+                      />
+                    )}
+                  </div>
                 </Link>
               ))}
             </nav>

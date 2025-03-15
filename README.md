@@ -15,24 +15,43 @@ StreamVault is a modern web application built with Next.js that serves as a comp
 - 📱 Fully responsive design for all devices
 - 💫 Smooth animations and transitions using Framer Motion
 - 🎨 Modern UI with Tailwind CSS and DaisyUI
-- 🌙 Beautiful backdrop blur effects
+- 🌙 Beautiful backdrop blur effects and glass morphism
 - 📺 Video player integration for content streaming
 - 🔄 Persistent storage for user preferences and search history
 - 🎬 TMDB API integration for rich media content
 - 🔒 Protected routes with middleware authentication
+- 🎯 Custom animations and micro-interactions
+- 🌓 Light and dark mode with smooth transitions
+- 🎨 Consistent design system with custom components
+- 💎 Polished UI with subtle shadows and borders
 
 ## Tech Stack
 
-- **Framework:** Next.js 14
-- **Styling:** Tailwind CSS, DaisyUI
+- **Framework:** Next.js 14 with App Router
+- **Styling:** 
+  - Tailwind CSS for utility-first styling
+  - DaisyUI for component primitives
+  - Custom design system with consistent shadows and borders
 - **Database:** MongoDB with Mongoose
 - **Authentication:** JWT (JSON Web Tokens)
 - **State Management:** React Context
-- **UI Components:** Radix UI
-- **Icons:** React Icons, Lucide React
-- **Animations:** Framer Motion
+- **UI Components:** 
+  - Radix UI for accessible components
+  - Custom animated components
+- **Icons:** 
+  - React Icons
+  - Lucide React for consistent iconography
+- **Animations:** 
+  - Framer Motion for page transitions
+  - Custom keyframe animations
+  - Micro-interactions
 - **HTTP Client:** Axios
 - **Data Fetching:** SWR
+- **Image Optimization:** Next.js Image Component
+- **Performance:** 
+  - Route prefetching
+  - Image optimization
+  - Component lazy loading
 
 ## Getting Started
 
@@ -53,6 +72,7 @@ yarn install
 ```env
 MONGODB_URI=your_mongodb_connection_string
 JWT_KEY=your_jwt_secret_key
+TMDB_API_KEY=your_tmdb_api_key
 ```
 
 4. Run the development server:
@@ -63,7 +83,16 @@ yarn dev
 ```
 
 5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-```
+
+## Design System
+
+- **Colors:** Custom color palette with primary and accent colors
+- **Typography:** Consistent font scaling with responsive sizes
+- **Spacing:** Standardized spacing scale
+- **Shadows:** Subtle, layered shadows for depth
+- **Borders:** Light gray borders with consistent opacity
+- **Animations:** Smooth transitions and micro-interactions
+- **Components:** Reusable, styled components with consistent design
 
 ## Developer
 
