@@ -10,8 +10,15 @@ const MediaCard = ({ item, type }) => {
   const releaseDate = type === "movie" ? item.release_date : item.first_air_date;
   const releaseYear = releaseDate ? releaseDate.split("-")[0] : "TBA";
   
-  // Fix the URL construction here
-  const detailUrl = type === "tv" ? `/shows/${item.id}` : `/${type}s/${item.id}`;
+  // Check if the item is from the anime route
+  const isAnime = window.location.pathname.startsWith('/animes');
+  
+  // Fix the URL construction to handle anime type correctly
+  const detailUrl = isAnime 
+    ? `/animes/${item.id}`
+    : type === "tv" 
+      ? `/shows/${item.id}` 
+      : `/${type}s/${item.id}`;
 
   // Function to get badge text based on year
   const getBadge = (year) => {
