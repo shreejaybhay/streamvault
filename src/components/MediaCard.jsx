@@ -7,10 +7,11 @@ import { BsTv } from "react-icons/bs";
 const MediaCard = ({ item, type }) => {
   // Determine properties based on media type
   const title = type === "movie" ? item.title : item.name;
-  const releaseDate =
-    type === "movie" ? item.release_date : item.first_air_date;
+  const releaseDate = type === "movie" ? item.release_date : item.first_air_date;
   const releaseYear = releaseDate ? releaseDate.split("-")[0] : "TBA";
-  const detailUrl = `/${type}s/${item.id}`;
+  
+  // Fix the URL construction here
+  const detailUrl = type === "tv" ? `/shows/${item.id}` : `/${type}s/${item.id}`;
 
   // Function to get badge text based on year
   const getBadge = (year) => {

@@ -110,38 +110,23 @@ export default function HeroSlider() {
   )
 
   useEffect(() => {
-    const TMDBKEY = process.env.NEXT_PUBLIC_TMDB_KEY
     const fetchMovies = async () => {
       try {
-        setLoading(true)
-        const response = await axios.get(`https://api.themoviedb.org/3/trending/all/week?api_key=${TMDBKEY}&page=1`)
-
-        // Process the results
-        const results = response.data.results.slice(0, 10).map((item) => ({
-          ...item,
-          title: item.title || item.name, // TV shows use 'name' instead of 'title'
-          isShow: item.media_type === "tv",
-          isMovie: item.media_type === "movie",
-          isAnime: item.media_type === "tv" && item.genre_ids?.includes(16),
-        }))
-
-        setMovies(results)
-        setLoading(false)
-
-        // Preload the first few images
-        for (let i = 0; i < Math.min(3, results.length); i++) {
-          const img = new Image()
-          img.src = `https://image.tmdb.org/t/p/original${results[i].backdrop_path}`
-          img.crossOrigin = "anonymous"
-        }
+        setLoading(true);
+        // Make sure to include the path parameter
+        const response = await fetch('/api/tmdb?path=trending/all/week&page=1');
+        if (!response.ok) throw new Error('Failed to fetch');
+        const data = await response.json();
+        setMovies(data.results);
+        setLoading(false);
       } catch (error) {
-        console.error("Error fetching movies:", error)
-        setLoading(false)
+        console.error("Error fetching movies:", error);
+        setLoading(false);
       }
-    }
+    };
 
-    fetchMovies()
-  }, [])
+    fetchMovies();
+  }, []);
 
   // Autoplay with progress tracking
   useEffect(() => {
@@ -429,9 +414,8 @@ export default function HeroSlider() {
                       className="relative overflow-hidden rounded-xl backdrop-blur-md mb-4 sm:mb-6"
                     >
                       <div className="absolute inset-0 bg-black/40 -z-10"></div>
-                      <p
-                        className="text-sm sm:text-base md:text-lg font-medium text-gray-100 
-                      tracking-wide leading-relaxed line-clamp-3 sm:line-clamp-3 p-3 sm:p-4"
+                      <p className="text-sm sm:text-base md:text-lg font-medium text-gray-100 
+                        tracking-wide leading-relaxed line-clamp-3 p-3 sm:p-4"
                       >
                         {movie.overview}
                       </p>
