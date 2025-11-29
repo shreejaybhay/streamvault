@@ -80,7 +80,7 @@ const MovieDetailsPage = () => {
     const [genreMap, setGenreMap] = useState({});
     const [torrentLinks, setTorrentLinks] = useState([]);
 
-    const movieEmbedUrl = `https://vidsrc.pro/embed/movie/${id}`;
+    const movieEmbedUrl = `https://vidsrc-embed.ru/embed/movie/${id}`;
 
     const fetchTorrentLinks = async (movieTitle, year) => {
         try {

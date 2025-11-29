@@ -109,7 +109,7 @@ const ShowDetail = ({ params: { id } }) => {
   // Set the embed URL for the show
   useEffect(() => {
     if (id && selectedSeason && selectedEpisode) {
-      setShowEmbedUrl(`https://vidsrc.pro/embed/tv/${id}/${selectedSeason}/${selectedEpisode}`)
+      setShowEmbedUrl(`https://vidsrc-embed.ru/embed/tv/${id}/${selectedSeason}/${selectedEpisode}`)
     }
   }, [id, selectedSeason, selectedEpisode])
 
