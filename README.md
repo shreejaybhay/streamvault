@@ -1,6 +1,7 @@
 # StreamVault - Your Entertainment Hub
 
-StreamVault is a modern web application built with Next.js that serves as a comprehensive platform for streaming movies, TV shows, and anime. The platform offers a seamless user experience with features like user authentication, watchlist management, and a responsive design. 
+StreamVault is a modern web application built with Next.js that serves as a comprehensive platform for streaming movies, TV shows, and anime. The platform offers a seamless user experience with features like user authentication, watchlist management, and a responsive design.
+
 Note: This project is for practice and educational purposes.
 
 ## Features
