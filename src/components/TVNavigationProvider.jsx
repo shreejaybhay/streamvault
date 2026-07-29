@@ -39,16 +39,13 @@ export default function TVNavigationProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    // Detect TV Mode strictly for Smart TV browsers or ?tv=true parameter
+    // Detect TV Mode for Smart TV browsers or ?tv=true parameter
     const tvActive = isTVBrowser();
-    setIsTV(tvActive);
-
-    if (!tvActive) {
-      document.body.classList.remove("tv-mode");
-      return; // On PCs, do nothing so normal mouse/keyboard navigation remains untouched
+    if (tvActive) {
+      setIsTV(true);
+      document.body.classList.add("tv-mode");
+      autoFocusFirstElement();
     }
-
-    document.body.classList.add("tv-mode");
 
     const handleFocusIn = (e) => {
       if (e.target && e.target.nodeType === 1) {
@@ -61,18 +58,31 @@ export default function TVNavigationProvider({ children }) {
       const action = getKeyAction(e);
       if (!action) return;
 
-      const activeEl = document.activeElement;
+      // Dynamically activate TV navigation mode on first D-Pad arrow press
+      setIsTV(true);
+      document.body.classList.add("tv-mode");
+
+      let activeEl = document.activeElement;
+
+      // If body or no element is focused, focus the first interactive element on screen
+      if (!activeEl || activeEl === document.body) {
+        const focusables = getFocusableElements();
+        if (focusables.length > 0) {
+          activeEl = focusables[0];
+          applyTVFocus(activeEl);
+        }
+      }
 
       // Handle D-Pad Directions
       if (["UP", "DOWN", "LEFT", "RIGHT"].includes(action)) {
-        // Prevent default browser scrolling
+        // Prevent default browser scrolling (page scrolling up/down)
         e.preventDefault();
 
         const nextEl = getNextSpatialElement(activeEl, action);
         if (nextEl) {
           applyTVFocus(nextEl);
         } else if (action === "RIGHT" || action === "LEFT") {
-          // If no next card visible on screen, check if we are inside a slider and trigger slide change
+          // If no next card visible on screen, check if inside a slider and trigger slide change
           const sliderContainer = activeEl?.closest(
             ".slick-slider, [role='region'][aria-roledescription='carousel'], [data-slider-row='true']"
           );
@@ -105,9 +115,8 @@ export default function TVNavigationProvider({ children }) {
           }
         }
       } else if (action === "ENTER") {
-        // If current element is focused, trigger click if not automatically handled
+        // If current element is focused, trigger click
         if (activeEl && activeEl !== document.body) {
-          // Standard buttons/links automatically click on Enter, but ensure explicit click
           if (activeEl.tagName !== "INPUT" && activeEl.tagName !== "TEXTAREA") {
             activeEl.click();
           }
@@ -127,7 +136,7 @@ export default function TVNavigationProvider({ children }) {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("focusin", handleFocusIn);
     };
-  }, [isTV]);
+  }, [applyTVFocus, autoFocusFirstElement]);
 
   // Refocus on route changes
   useEffect(() => {

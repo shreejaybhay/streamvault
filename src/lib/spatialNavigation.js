@@ -19,7 +19,11 @@ export function isTVBrowser() {
     'smart-tv',
     'smart tv',
     'tizen',
+    'webos',
     'web0s',
+    'samsungbrowser',
+    'samsungtv',
+    'samsung',
     'netcast',
     'hbbtv',
     'pov_tv',
@@ -37,7 +41,10 @@ export function isTVBrowser() {
     'roku',
     'playstation',
     'xbox',
-    'large screen'
+    'large screen',
+    'crkey',
+    'mibox',
+    'mitv'
   ];
 
   return tvKeywords.some((keyword) => ua.includes(keyword));
@@ -277,12 +284,12 @@ export function getNextSpatialElement(currentEl, direction) {
 
 // Remote Keycode Mappings across Samsung Tizen, LG WebOS, Android TV, Fire TV
 export const TV_KEYS = {
-  UP: ['ArrowUp', 38],
-  DOWN: ['ArrowDown', 40],
-  LEFT: ['ArrowLeft', 37],
-  RIGHT: ['ArrowRight', 39],
-  ENTER: ['Enter', 13, 10252],
-  BACK: ['Backspace', 'Escape', 'GoBack', 8, 27, 461, 10009],
+  UP: ['ArrowUp', 38, 'Up'],
+  DOWN: ['ArrowDown', 40, 'Down'],
+  LEFT: ['ArrowLeft', 37, 'Left'],
+  RIGHT: ['ArrowRight', 39, 'Right'],
+  ENTER: ['Enter', 13, 32, 10252, 29443, 'Select', 'Accept'],
+  BACK: ['Backspace', 'Escape', 'GoBack', 8, 27, 461, 10009, 'Back'],
   PLAY: ['MediaPlay', 415],
   PAUSE: ['MediaPause', 19],
   PLAY_PAUSE: ['MediaPlayPause', 10252]
