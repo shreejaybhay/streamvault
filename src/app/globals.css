@@ -112,15 +112,38 @@
   scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.1);
 }
 
-/* Mobile optimizations */
-@media (max-width: 640px) {
-  html {
-    font-size: 14px;
-  }
-  
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
+/* Smart TV Mode - Hide Cursor & High-Visibility D-Pad Focus Engine */
+body.tv-mode,
+body.tv-mode * {
+  cursor: none !important;
+}
 
+/* Prevent slick slider container from clipping focused scale/glow effect */
+body.tv-mode .slick-list {
+  overflow: visible !important;
+  padding: 16px 0 !important;
+}
+
+body.tv-mode .slick-slider {
+  overflow: visible !important;
+}
+
+/* Premium Apple TV / Netflix Style Single Focus Ring */
+body.tv-mode :focus,
+body.tv-mode :focus-visible,
+body.tv-mode .tv-focused {
+  outline: none !important;
+  border-radius: 12px;
+  box-shadow: 0 0 0 3.5px #3b82f6, 0 12px 30px rgba(59, 130, 246, 0.45) !important;
+  transform: scale(1.05) !important;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  z-index: 50 !important;
+  position: relative !important;
+}
+
+/* Trigger card hover overlay text when card is focused on TV */
+body.tv-mode :focus .opacity-0,
+body.tv-mode :focus-visible .opacity-0,
+body.tv-mode .tv-focused .opacity-0 {
+  opacity: 1 !important;
 }

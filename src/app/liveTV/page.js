@@ -450,8 +450,15 @@ const LiveTVPage = () => {
               return (
                 <div
                   key={`${channel.channel}-${index}`}
+                  tabIndex={0}
+                  role="button"
                   onClick={() => handleChannelClick(channel)}
-                  className="group relative bg-base-100 border border-base-300 rounded-lg overflow-hidden cursor-pointer shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && e.target === e.currentTarget) {
+                      handleChannelClick(channel)
+                    }
+                  }}
+                  className="group relative bg-base-100 border border-base-300 rounded-lg overflow-hidden cursor-pointer shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200 focus:outline-none"
                 >
                   <div className="aspect-video bg-base-300/40 relative flex items-center justify-center">
                     {renderLogo(channel)}
@@ -474,7 +481,14 @@ const LiveTVPage = () => {
 
                     <button
                       onClick={(e) => toggleFavorite(e, channel.channel)}
-                      className="text-base-content/40 hover:text-red-500 transition-colors p-1"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.stopPropagation()
+                          toggleFavorite(e, channel.channel)
+                        }
+                      }}
+                      className="text-base-content/40 hover:text-red-500 transition-colors p-1 z-10"
+                      title="Toggle Favorite"
                     >
                       {isFav ? <BsHeartFill className="text-red-500" size={13} /> : <FiHeart size={13} />}
                     </button>
@@ -490,8 +504,15 @@ const LiveTVPage = () => {
               return (
                 <div
                   key={`${channel.channel}-${index}`}
+                  tabIndex={0}
+                  role="button"
                   onClick={() => handleChannelClick(channel)}
-                  className="group flex items-center justify-between p-3 bg-base-100 border border-base-300 rounded-lg cursor-pointer hover:shadow-sm hover:border-primary/40 transition-all duration-200"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && e.target === e.currentTarget) {
+                      handleChannelClick(channel)
+                    }
+                  }}
+                  className="group flex items-center justify-between p-3 bg-base-100 border border-base-300 rounded-lg cursor-pointer hover:shadow-sm hover:border-primary/40 transition-all duration-200 focus:outline-none"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-12 h-8 bg-base-200 rounded overflow-hidden flex-shrink-0 border border-base-300 flex items-center justify-center">
@@ -508,7 +529,14 @@ const LiveTVPage = () => {
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <button
                       onClick={(e) => toggleFavorite(e, channel.channel)}
-                      className="text-base-content/40 hover:text-red-500 transition-colors p-1"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.stopPropagation()
+                          toggleFavorite(e, channel.channel)
+                        }
+                      }}
+                      className="text-base-content/40 hover:text-red-500 transition-colors p-1 z-10"
+                      title="Toggle Favorite"
                     >
                       {isFav ? <BsHeartFill className="text-red-500" size={14} /> : <FiHeart size={14} />}
                     </button>

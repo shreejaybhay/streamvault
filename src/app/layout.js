@@ -5,6 +5,7 @@ import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.min.css'; // Change to minified version
 import AuthProvider from "@/components/AuthContext";
 import Footer from "@/components/Footer";
+import TVNavigationProvider from "@/components/TVNavigationProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,25 +40,28 @@ export default function RootLayout({ children }) {
     <AuthProvider>
       <html lang="en" className="scroll-smooth">
         <body className={`${inter.className} min-h-screen flex flex-col`}>
-          <Navbar />
-          <ToastContainer
-            position="bottom-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="dark"
-          />
-          <main className="flex-grow">
-            {children}
-          </main>
-          <Footer />
+          <TVNavigationProvider>
+            <Navbar />
+            <ToastContainer
+              position="bottom-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="dark"
+            />
+            <main className="flex-grow">
+              {children}
+            </main>
+            <Footer />
+          </TVNavigationProvider>
         </body>
       </html>
     </AuthProvider>
   );
 }
+

@@ -16,7 +16,9 @@ const PrevArrow = (props) => {
   return (
     <button
       onClick={onClick}
-      className="absolute left-0 z-10 flex items-center justify-center w-10 h-10 -ml-5 transform -translate-y-1/2 rounded-full bg-black/40 backdrop-blur-md text-white top-1/2 hover:bg-white/20 transition-all duration-300 hover:scale-110 group shadow-lg shadow-black/20"
+      tabIndex={-1}
+      aria-hidden="true"
+      className="slick-arrow slick-prev absolute left-0 z-10 flex items-center justify-center w-10 h-10 -ml-5 transform -translate-y-1/2 rounded-full bg-black/40 backdrop-blur-md text-white top-1/2 hover:bg-white/20 transition-all duration-300 hover:scale-110 group shadow-lg shadow-black/20"
       aria-label="Previous shows"
     >
       <IoIosArrowBack
@@ -32,7 +34,9 @@ const NextArrow = (props) => {
   return (
     <button
       onClick={onClick}
-      className="absolute right-0 z-10 flex items-center justify-center w-10 h-10 -mr-5 transform -translate-y-1/2 rounded-full bg-black/40 backdrop-blur-md text-white top-1/2 hover:bg-white/20 transition-all duration-300 hover:scale-110 group shadow-lg shadow-black/20"
+      tabIndex={-1}
+      aria-hidden="true"
+      className="slick-arrow slick-next absolute right-0 z-10 flex items-center justify-center w-10 h-10 -mr-5 transform -translate-y-1/2 rounded-full bg-black/40 backdrop-blur-md text-white top-1/2 hover:bg-white/20 transition-all duration-300 hover:scale-110 group shadow-lg shadow-black/20"
       aria-label="Next shows"
     >
       <IoIosArrowForward
@@ -66,9 +70,9 @@ const genreMap = {
 // Enhanced ShowCard component with modern design and improved hover effects
 const ShowCard = ({ show, index }) => {
   return (
-    <Link href={`/shows/${show.id}`} passHref>
-      <motion.div className="relative px-1.5 md:px-2 lg:px-3 cursor-pointer group">
-        <div className="overflow-hidden rounded-lg shadow-lg shadow-black/40 backdrop-blur-md bg-gray-800/40 border border-gray-700/30 transition-all duration-300">
+    <Link href={`/shows/${show.id}`} passHref className="block w-full h-full focus:outline-none group/card rounded-xl">
+      <motion.div className="relative px-1.5 md:px-2 lg:px-3 cursor-pointer">
+        <div className="overflow-hidden rounded-xl shadow-lg shadow-black/40 backdrop-blur-md bg-gray-800/40 border border-gray-700/30 transition-all duration-300">
           <div className="relative aspect-[2/3] w-full overflow-hidden">
             {show.poster_path ? (
               <div className="relative w-full h-full">
@@ -77,16 +81,16 @@ const ShowCard = ({ show, index }) => {
                   alt={show.name}
                   fill
                   sizes="(max-width: 640px) 42vw, (max-width: 768px) 28vw, (max-width: 1024px) 23vw, 18vw"
-                  className="object-cover transform transition-transform duration-500 group-hover:scale-105"
+                  className="object-cover transform transition-transform duration-500 group-hover/card:scale-105 group-focus/card:scale-105"
                   loading={index < 3 ? "eager" : "lazy"}
                   priority={index < 3}
                   quality={90}
                 />
 
                 {/* Improved overlay with better positioning and scaling */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="absolute inset-0 flex flex-col justify-end p-3 opacity-0 group-hover:opacity-100 transition-opacity delay-100 duration-300">
-                    <div className="transform translate-y-2 transition-transform duration-300 group-hover:translate-y-0">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent opacity-0 group-hover/card:opacity-100 group-focus/card:opacity-100 group-focus-within/card:opacity-100 transition-opacity duration-300">
+                  <div className="absolute inset-0 flex flex-col justify-end p-3 opacity-0 group-hover/card:opacity-100 group-focus/card:opacity-100 group-focus-within/card:opacity-100 transition-opacity delay-100 duration-300">
+                    <div className="transform translate-y-2 transition-transform duration-300 group-hover/card:translate-y-0 group-focus/card:translate-y-0">
                       <h3 className="mb-1 text-xs font-bold tracking-wide text-white md:text-sm">
                         {show.name}
                       </h3>
